@@ -1,103 +1,395 @@
-import Image from "next/image";
+// 'use client'
+
+// import { useState } from 'react'
+// import WalletConnection from './components/WalletConnection'
+
+// export default function Home() {
+//   const [gameBoard, setGameBoard] = useState(Array(9).fill(null))
+//   const [currentPlayer, setCurrentPlayer] = useState('X')
+//   const [gameActive, setGameActive] = useState(true)
+//   const [connectedAccount, setConnectedAccount] = useState('')
+
+//   // Перевірка переможця
+//   const checkWinner = (board: (string | null)[]): boolean => {
+//     const winningConditions = [
+//       [0, 1, 2], [3, 4, 5], [6, 7, 8], // горизонталі
+//       [0, 3, 6], [1, 4, 7], [2, 5, 8], // вертикалі
+//       [0, 4, 8], [2, 4, 6] // діагоналі
+//     ]
+    
+//     return winningConditions.some(condition => {
+//       const [a, b, c] = condition
+//       return board[a] && board[a] === board[b] && board[a] === board[c]
+//     })
+//   }
+
+//   // Перезапуск гри
+//   const resetGame = () => {
+//     setGameBoard(Array(9).fill(null))
+//     setCurrentPlayer('X')
+//     setGameActive(true)
+//   }
+
+//   // Обробник підключення гаманця
+//   const handleWalletConnect = (account: string) => {
+//     setConnectedAccount(account)
+//     console.log('Гаманець підключено в головному компоненті:', account)
+//   }
+
+//   // Обробник кліку по клітинці
+//   const handleCellClick = (index: number) => {
+//     if (gameBoard[index] || !gameActive) return
+
+//     const newBoard = [...gameBoard]
+//     newBoard[index] = currentPlayer
+//     setGameBoard(newBoard)
+
+//     if (checkWinner(newBoard)) {
+//       setGameActive(false)
+//       alert(`Гравець ${currentPlayer} переміг!`)
+//     } else if (newBoard.every(cell => cell !== null)) {
+//       setGameActive(false)
+//       alert('Нічия!')
+//     } else {
+//       setCurrentPlayer(currentPlayer === 'X' ? 'O' : 'X')
+//     }
+//   }
+
+//   return (
+//     <div className="min-h-screen bg-gray-900 text-white p-8">
+//       <div className="max-w-md mx-auto">
+//         <h1 className="text-4xl font-bold text-center mb-8">Хрестики-Нулики</h1>
+        
+//         {/* Підключення гаманця */}
+//         <div className="mb-6">
+//           <WalletConnection onWalletConnect={handleWalletConnect} />
+//         </div>
+
+//         {/* Ігрове поле */}
+//         <div className="grid grid-cols-3 gap-2 mb-6">
+//           {gameBoard.map((cell, index) => (
+//             <button
+//               key={index}
+//               onClick={() => handleCellClick(index)}
+//               className="w-20 h-20 bg-gray-700 hover:bg-gray-600 border border-gray-500 text-2xl font-bold"
+//             >
+//               {cell}
+//             </button>
+//           ))}
+//         </div>
+
+//         {/* Інформація про поточного гравця */}
+//         <div className="text-center mb-4">
+//           {gameActive ? (
+//             <p className="text-xl">Хід гравця: <span className="font-bold">{currentPlayer}</span></p>
+//           ) : (
+//             <p className="text-xl text-red-400">Гра завершена</p>
+//           )}
+//         </div>
+
+//         {/* Кнопка перезапуску */}
+//         <div className="text-center">
+//           <button 
+//             onClick={resetGame}
+//             className="bg-red-600 hover:bg-red-700 px-6 py-3 rounded font-bold"
+//           >
+//             Нова гра
+//           </button>
+//         </div>
+//       </div>
+//     </div>
+//   )
+// }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// import GameBoard from './components/game/GameBoard';
+// import TournamentSection from './components/ui/TournamentSection';
+// import Leaderboard from './components/ui/Leaderboard';
+// import WalletConnection from './components/ui/WalletConnection';
+
+
+// export default function Home() {
+//   return (
+//     <div className="min-h-screen bg-gradient-to-br from-indigo-500 via-purple-600 to-purple-800 text-white p-5">
+//       <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-5 items-start">
+//         {/* Ігрова секція */}
+//         <div className="lg:col-span-1">
+//           <GameBoard />
+//         </div>
+        
+//         <div>
+//           <h1>Головна сторінка</h1>
+//           <WalletConnection />
+//         </div>
+        
+//         {/* Секція турнірів */}
+//         <div className="lg:col-span-1">
+//           <TournamentSection />
+//         </div>
+        
+//         {/* Лідерборд */}
+//         <div className="lg:col-span-1">
+//           <Leaderboard />
+//         </div>
+//       </div>
+//     </div>
+//   );
+// }
+
+
+
+
+
+// import GameBoard from './components/game/GameBoard';
+// import TournamentSection from './components/ui/TournamentSection';
+// import Leaderboard from './components/ui/Leaderboard';
+// import WalletConnection from './components/ui/WalletConnection';
+
+
+// export default function Home() {
+//   return (
+//     <div className="min-h-screen bg-gradient-to-br from-indigo-500 via-purple-600 to-purple-800 text-white p-4">
+//       <div className="max-w-7xl mx-auto">
+//         {/* Десктопна версія */}
+//         <div className="hidden lg:grid lg:grid-cols-3 gap-4 items-start">
+//           {/* Лідерборд зліва */}
+//           <div className="lg:col-span-1">
+//             <Leaderboard />
+//           </div>
+
+//           {/* Центр - Хрестики-нулики */}
+//           <div className="lg:col-span-1">
+//             <GameBoard />
+//           </div>
+
+//           {/* Права колонка */}
+//           <div className="lg:col-span-1 space-y-4">
+//             {/* Гаманець вгорі */}
+//             <div className="relative bg-white/10 backdrop-blur-md rounded-3xl p-6 shadow-2xl z-[30]">
+//               {/* <h2 className="sr-only">💳 Гаманець</h2> */}
+//               <h2 className="text-2xl font-bold mb-4 text-center">💳 Гаманець</h2>
+//               <WalletConnection />
+//             </div>
+            
+//             {/* Турніри внизу */}
+//             <TournamentSection />
+//           </div>
+//         </div>
+
+//         {/* Мобільна версія */}
+//         <div className="lg:hidden space-y-4">
+//           {/* Хрестики-нулики вгорі */}
+//           <GameBoard />
+          
+//           {/* Гаманець */}
+//           <div className="bg-white/10 backdrop-blur-md rounded-3xl p-6 shadow-2xl relative">
+//             {/* <h2 className="sr-only">💳 Гаманець</h2> */}
+//             <h2 className="text-2xl font-bold mb-4 text-center">💳 Гаманець</h2>
+//             <WalletConnection />
+//           </div>
+
+//           {/* Турніри */}
+//           <TournamentSection />
+
+//           {/* Лідерборд */}
+//           <Leaderboard />
+//         </div>
+//       </div>
+//     </div>
+//   );
+// }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// import GameBoard from './components/game/GameBoard';
+// import TournamentSection from './components/ui/TournamentSection';
+// import Leaderboard from './components/ui/Leaderboard';
+// import WalletConnection from './components/ui/WalletConnection';
+
+// export default function Home() {
+//   return (
+//     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900 text-white p-4">
+//       <div className="max-w-7xl mx-auto">
+//         {/* Десктопна версія */}
+//         <div className="hidden lg:grid lg:grid-cols-3 gap-4 items-start">
+//           {/* Лідерборд зліва */}
+//           <div className="lg:col-span-1">
+//             <Leaderboard />
+//           </div>
+
+//           {/* Центр - Хрестики-нулики */}
+//           <div className="lg:col-span-1">
+//             <GameBoard />
+//           </div>
+
+//           {/* Права колонка */}
+//           <div className="lg:col-span-1 space-y-4">
+//             {/* Гаманець вгорі */}
+//             <div className="relative bg-gradient-to-br from-gray-800/50 via-purple-800/50 to-gray-800/50 backdrop-blur-md rounded-3xl p-6 shadow-2xl z-[30] border border-purple-500/20">
+//               <h2 className="text-2xl font-bold mb-4 text-center">💳 Гаманець</h2>
+//               <WalletConnection />
+//             </div>
+            
+//             {/* Турніри внизу */}
+//             <TournamentSection />
+//           </div>
+//         </div>
+
+//         {/* Мобільна версія */}
+//         <div className="lg:hidden space-y-4">
+//           {/* Хрестики-нулики вгорі */}
+//           <GameBoard />
+          
+//           {/* Гаманець */}
+//           <div className="bg-gradient-to-br from-gray-800/50 via-purple-800/50 to-gray-800/50 backdrop-blur-md rounded-3xl p-6 shadow-2xl relative border border-purple-500/20">
+//             <h2 className="text-2xl font-bold mb-4 text-center">💳 Гаманець</h2>
+//             <WalletConnection />
+//           </div>
+
+//           {/* Турніри */}
+//           <TournamentSection />
+
+//           {/* Лідерборд */}
+//           <Leaderboard />
+//         </div>
+//       </div>
+//     </div>
+//   );
+// }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//import GameBoard from './components/game/GameBoard';
+import TournamentSection from './components/ui/TournamentSection';
+//import Leaderboard from './components/ui/Leaderboard';
+import RightPanel from './components/ui/RightPanel';
+import GameSection from './components/game/sections/GameSection';
 
 export default function Home() {
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900 text-white p-4">
+      <div className="max-w-7xl mx-auto">
+        {/* Десктопна версія */}
+        <div className="hidden lg:grid lg:grid-cols-3 gap-4 items-start">
+          {/* Турніри зліва (раніше був лідерборд) */}
+          <div className="lg:col-span-1">
+            <TournamentSection />
+          </div>
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+          {/* Центр - Хрестики-нулики */}
+          <div className="lg:col-span-1">
+            {/* <GameBoard /> */}
+            <GameSection />
+          </div>
+
+          {/* Права колонка з табами */}
+          <div className="lg:col-span-1">
+            <RightPanel />
+          </div>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+
+        {/* Мобільна версія */}
+        <div className="lg:hidden space-y-4">
+          {/* Хрестики-нулики вгорі */}
+          <GameSection />
+          
+          {/* Права панель (гаманець + таби) */}
+          <RightPanel />
+
+          {/* Турніри - ПРИХОВУЄМО на мобільній версії */}
+          <div className="hidden">
+            <TournamentSection />
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
