@@ -2006,12 +2006,111 @@
 */
 
 // Тимчасовий заглушка для інтерфейсу
+// export default function WalletConnection() {
+//   return (
+//     <div className="text-center">
+//       <button className="w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-3 rounded-xl font-semibold">
+//         Sign in with Monad Games ID
+//       </button>
+//     </div>
+//   )
+// }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+'use client';
+
+import { useMonadAuth } from '../../../hooks/useMonadAuth';
+
 export default function WalletConnection() {
+  const { isConnected, user, isLoading, error, login, logout } = useMonadAuth();
+
+  if (isLoading) {
+    return (
+      <div className="text-center">
+        <div className="w-full bg-gray-600 px-6 py-3 rounded-xl font-semibold opacity-50">
+          Loading...
+        </div>
+      </div>
+    );
+  }
+
+  if (isConnected && user) {
+    return (
+      <div className="space-y-3">
+        <div className="text-center">
+          <div className="text-lg font-semibold text-green-400">
+            {user.username ? `@${user.username}` : 'Anonymous Player'}
+          </div>
+          <div className="text-xs text-gray-400 truncate mt-1">
+            {user.address.slice(0, 6)}...{user.address.slice(-4)}
+          </div>
+        </div>
+        
+        <div className="flex gap-2">
+          <button
+            onClick={logout}
+            className="flex-1 bg-red-500 hover:bg-red-600 px-4 py-2 rounded-lg text-sm transition-colors"
+          >
+            Disconnect
+          </button>
+          
+          <button
+            className="flex-1 bg-purple-500 hover:bg-purple-600 px-4 py-2 rounded-lg text-sm transition-colors"
+            onClick={() => window.open(`https://testnet.monadexplorer.com/address/${user.address}`, '_blank')}
+          >
+            View Profile
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="space-y-3">
+        <div className="text-red-400 text-sm text-center">{error}</div>
+        <button
+          onClick={login}
+          className="w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-3 rounded-xl font-semibold hover:opacity-90 transition-opacity"
+        >
+          Try Again
+        </button>
+      </div>
+    );
+  }
+
   return (
     <div className="text-center">
-      <button className="w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-3 rounded-xl font-semibold">
+      <button
+        onClick={login}
+        className="w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-3 rounded-xl font-semibold hover:opacity-90 transition-opacity"
+      >
         Sign in with Monad Games ID
       </button>
     </div>
-  )
+  );
 }
