@@ -624,8 +624,8 @@ export function generateWinningConditions(size: BoardSize): number[][] {
   
    // ДОДАТИ В КІНЕЦЬ ФУНКЦІЇ:
    if (size === 4) {
-    console.log('🎯 ЗГЕНЕРОВАНІ УМОВИ ПЕРЕМОГИ для 4×4:', conditions);
-    console.log('📊 Загальна кількість умов:', conditions.length);
+    // console.log('🎯 ЗГЕНЕРОВАНІ УМОВИ ПЕРЕМОГИ для 4×4:', conditions);
+    // console.log('📊 Загальна кількість умов:', conditions.length);
   }
 
   return conditions;
@@ -971,17 +971,7 @@ export function clearBoard(size: BoardSize): CellValue[] {
 
 // ================================
 // ДОДАТИ ЦЕЙ КОД В КІНЕЦЬ ФАЙЛУ src/utils/gameUtils.ts
-// ================================
-
-// Імпорти для нових типів (додати до існуючих імпортів)
-// import type { 
-//   RestrictedCells, 
-//   CellIndex, 
-//   MoveValidation, 
-//   RestrictionInfo,
-//   GameRules
-// } from '../lib/types/game';
-
+// ===============================
 // === ФУНКЦІЇ ДЛЯ 4×4 ОБМЕЖЕНЬ ===
 
 /**
@@ -1010,169 +1000,6 @@ export function getAdjacentCells(cellIndex: CellIndex, boardSize: BoardSize): Ce
   
   return adjacent;
 }
-
-/**
- * Отримує обмежені клітинки для поточного гравця
- * ОНОВЛЕНО: обмеження для першого гравця незалежно від символу
- */
-// export function getRestrictedCells(
-//   board: CellValue[], 
-//   boardSize: BoardSize, 
-//   currentPlayer: Player,
-//   firstPlayer: Player // НОВИЙ ПАРАМЕТР
-// ): RestrictedCells {
-//   // Обмеження тільки для 4×4
-//   if (boardSize !== 4) return [];
-  
-//   // Обмеження тільки для першого гравця (незалежно від символу)
-//   if (currentPlayer !== firstPlayer) return [];
-  
-//   // Перевіряємо чи це другий хід першого гравця
-//   const firstPlayerMoves = board.filter(cell => cell === firstPlayer).length;
-//   if (firstPlayerMoves !== 1) return []; // не другий хід
-  
-//   // Знаходимо позицію першого ходу
-//   const firstMovePosition = board.findIndex(cell => cell === firstPlayer);
-//   if (firstMovePosition === -1) return [];
-  
-//   // Отримуємо сусідні клітинки та фільтруємо тільки порожні
-//   return getAdjacentCells(firstMovePosition, boardSize)
-//     .filter(index => board[index] === '');
-// }
-
-// export function getRestrictedCells(
-//   board: CellValue[], 
-//   boardSize: BoardSize, 
-//   currentPlayer: Player,
-//   firstPlayer: Player
-// ): RestrictedCells {
-//   // Обмеження тільки для 4×4
-//   if (boardSize !== 4) return [];
-  
-//   // Обмеження тільки для першого гравця
-//   if (currentPlayer !== firstPlayer) return [];
-  
-//   // Перевіряємо чи це другий хід першого гравця
-//   const firstPlayerMoves = board.filter(cell => cell === firstPlayer).length;
-//   if (firstPlayerMoves !== 1) return []; // не другий хід
-  
-//   // Знаходимо позицію першого ходу
-//   const firstMovePosition = board.findIndex(cell => cell === firstPlayer);
-//   if (firstMovePosition === -1) return [];
-  
-//   const { row: firstRow, col: firstCol } = getRowCol(firstMovePosition, boardSize);
-//   const restrictedCells: number[] = [];
-  
-//   // Всі 8 напрямків від першого ходу
-//   const directions = [
-//     [-1, -1], [-1, 0], [-1, 1],  // вгору-ліво, вгору, вгору-право
-//     [0, -1],           [0, 1],   // ліво, право
-//     [1, -1],  [1, 0],  [1, 1]    // вниз-ліво, вниз, вниз-право
-//   ];
-  
-//   for (const [deltaRow, deltaCol] of directions) {
-//     const adjacentRow = firstRow + deltaRow;
-//     const adjacentCol = firstCol + deltaCol;
-    
-//     // Перевіряємо чи сусідня клітинка в межах дошки
-//     if (adjacentRow >= 0 && adjacentRow < boardSize && 
-//         adjacentCol >= 0 && adjacentCol < boardSize) {
-      
-//       const adjacentIndex = getIndex(adjacentRow, adjacentCol, boardSize);
-      
-//       // Якщо сусідня клітинка зайнята, пропускаємо
-//       if (board[adjacentIndex] !== '') continue;
-      
-//       // Перевіряємо чи є продовження в тому ж напрямку
-//       const nextRow = adjacentRow + deltaRow;
-//       const nextCol = adjacentCol + deltaCol;
-      
-//       // Якщо наступна клітинка в межах дошки і вільна - це заборонено
-//       if (nextRow >= 0 && nextRow < boardSize && 
-//           nextCol >= 0 && nextCol < boardSize) {
-        
-//         const nextIndex = getIndex(nextRow, nextCol, boardSize);
-        
-//         // Якщо наступна клітинка порожня - заборонити сусідню
-//         if (board[nextIndex] === '') {
-//           restrictedCells.push(adjacentIndex);
-//         }
-//       }
-//       // Якщо наступна клітинка за межами дошки - дозволити (край дошки)
-//     }
-//   }
-  
-//   return restrictedCells;
-// }
-
-// export function getRestrictedCells(
-//   board: CellValue[], 
-//   boardSize: BoardSize, 
-//   currentPlayer: Player,
-//   firstPlayer: Player
-// ): RestrictedCells {
-//   // Обмеження тільки для 4×4
-//   if (boardSize !== 4) return [];
-  
-//   // Підраховуємо ходи кожного гравця
-//   const firstPlayerMoves = board.filter(cell => cell === firstPlayer).length;
-//   const secondPlayer = getOppositePlayer(firstPlayer);
-//   const secondPlayerMoves = board.filter(cell => cell === secondPlayer).length;
-  
-//   // Перевіряємо чи це другий хід для будь-якого з гравців
-//   const isSecondMoveForFirst = currentPlayer === firstPlayer && firstPlayerMoves === 1;
-//   const isSecondMoveForSecond = currentPlayer === secondPlayer && secondPlayerMoves === 1;
-  
-//   if (!isSecondMoveForFirst && !isSecondMoveForSecond) return [];
-  
-//   // Знаходимо позицію першого ходу відповідного гравця
-//   const firstMovePosition = board.findIndex(cell => cell === currentPlayer);
-//   if (firstMovePosition === -1) return [];
-  
-//   const { row: firstRow, col: firstCol } = getRowCol(firstMovePosition, boardSize);
-//   const restrictedCells: number[] = [];
-  
-//   // Всі 8 напрямків від першого ходу
-//   const directions = [
-//     [-1, -1], [-1, 0], [-1, 1],  // вгору-ліво, вгору, вгору-право
-//     [0, -1],           [0, 1],   // ліво, право
-//     [1, -1],  [1, 0],  [1, 1]    // вниз-ліво, вниз, вниз-право
-//   ];
-  
-//   for (const [deltaRow, deltaCol] of directions) {
-//     const adjacentRow = firstRow + deltaRow;
-//     const adjacentCol = firstCol + deltaCol;
-    
-//     // Перевіряємо чи сусідня клітинка в межах дошки
-//     if (adjacentRow >= 0 && adjacentRow < boardSize && 
-//         adjacentCol >= 0 && adjacentCol < boardSize) {
-      
-//       const adjacentIndex = getIndex(adjacentRow, adjacentCol, boardSize);
-      
-//       // Якщо сусідня клітинка зайнята, пропускаємо
-//       if (board[adjacentIndex] !== '') continue;
-      
-//       // Перевіряємо чи є продовження в тому ж напрямку
-//       const nextRow = adjacentRow + deltaRow;
-//       const nextCol = adjacentCol + deltaCol;
-      
-//       // Якщо наступна клітинка в межах дошки і вільна - це заборонено
-//       if (nextRow >= 0 && nextRow < boardSize && 
-//           nextCol >= 0 && nextCol < boardSize) {
-        
-//         const nextIndex = getIndex(nextRow, nextCol, boardSize);
-        
-//         // Якщо наступна клітинка порожня - заборонити сусідню
-//         if (board[nextIndex] === '') {
-//           restrictedCells.push(adjacentIndex);
-//         }
-//       }
-//       // Якщо наступна клітинка за межами дошки - дозволити (край дошки)
-//     }
-//   }
-  
-//   return restrictedCells;
-// }
 
 export function getRestrictedCells(
   board: CellValue[], 
@@ -1324,97 +1151,6 @@ export function validateMove(
 return { isValid: true };
 }
 
-/**
- * Отримує інформацію про поточні обмеження
- * ОНОВЛЕНО: додано параметр firstPlayer
- */
-// export function getRestrictionInfo(
-//   board: CellValue[],
-//   boardSize: BoardSize,
-//   currentPlayer: Player,
-//   firstPlayer: Player // НОВИЙ ПАРАМЕТР
-// ): RestrictionInfo {
-//   const restrictedCells = getRestrictedCells(board, boardSize, currentPlayer, firstPlayer);
-  
-//   if (restrictedCells.length === 0) {
-//     return {
-//       hasRestrictions: false,
-//       restrictedCells: [],
-//       reasonDescription: '',
-//       affectedPlayer: null
-//     };
-//   }
-  
-//   return {
-//     hasRestrictions: true,
-//     restrictedCells,
-//     reasonDescription: `Другий хід першого гравця (${firstPlayer}) не може бути поруч з першим ходом`,
-//     affectedPlayer: firstPlayer
-//   };
-// }
-
-// export function getRestrictionInfo(
-//   board: CellValue[],
-//   boardSize: BoardSize,
-//   currentPlayer: Player,
-//   firstPlayer: Player
-// ): RestrictionInfo {
-//   const restrictedCells = getRestrictedCells(board, boardSize, currentPlayer, firstPlayer);
-  
-//   if (restrictedCells.length === 0) {
-//     return {
-//       hasRestrictions: false,
-//       restrictedCells: [],
-//       reasonDescription: '',
-//       affectedPlayer: null
-//     };
-//   }
-  
-//   return {
-//     hasRestrictions: true,
-//     restrictedCells,
-//     reasonDescription: `Другий хід першого гравця (${firstPlayer}) не може створювати лінію з 3 вільними клітинками підряд`,
-//     affectedPlayer: firstPlayer
-//   };
-// }
-
-// export function getRestrictionInfo(
-//   board: CellValue[],
-//   boardSize: BoardSize,
-//   currentPlayer: Player,
-//   firstPlayer: Player
-// ): RestrictionInfo {
-//   const restrictedCells = getRestrictedCells(board, boardSize, currentPlayer, firstPlayer);
-  
-//   if (restrictedCells.length === 0) {
-//     return {
-//       hasRestrictions: false,
-//       restrictedCells: [],
-//       reasonDescription: '',
-//       affectedPlayer: null
-//     };
-//   }
-  
-//   // Визначаємо який гравець має обмеження
-//   const secondPlayer = getOppositePlayer(firstPlayer);
-//   const firstPlayerMoves = board.filter(cell => cell === firstPlayer).length;
-//   const secondPlayerMoves = board.filter(cell => cell === secondPlayer).length;
-  
-//   let reasonDescription = '';
-//   if (currentPlayer === firstPlayer && firstPlayerMoves === 1) {
-//     reasonDescription = `Другий хід першого гравця (${firstPlayer}) не може створювати лінію з 3 вільними клітинками підряд`;
-//   } else if (currentPlayer === secondPlayer && secondPlayerMoves === 1) {
-//     reasonDescription = `Другий хід другого гравця (${secondPlayer}) не може створювати лінію з 3 вільними клітинками підряд`;
-//   }
-  
-//   return {
-//     hasRestrictions: true,
-//     restrictedCells,
-//     reasonDescription,
-//     affectedPlayer: currentPlayer
-//   };
-// }
-
 export function getRestrictionInfo(
   board: CellValue[],
   boardSize: BoardSize,
@@ -1423,10 +1159,6 @@ export function getRestrictionInfo(
   language: Language,
 ): RestrictionInfo {
   const restrictedCells = getRestrictedCells(board, boardSize, currentPlayer, firstPlayer);
-  console.log('🌐 getRestrictionInfo викликано з мовою:', language); // DEBUG
-  console.log('📚 Доступні переклади:', translations);
-  console.log('🔤 Специфічні переклади для мови:', translations[language]);
-  console.log('🔍 Переклади обмежень:', translations[language]?.restrictions);
   
   if (restrictedCells.length === 0) {
     return {
@@ -1547,12 +1279,8 @@ export function logRestrictedCells(
   const restrictedCells = getRestrictedCells(board, boardSize, currentPlayer, firstPlayer);
   
   if (restrictedCells.length === 0) {
-    console.log(`🟢 Немає обмежень для гравця ${currentPlayer} (перший гравець: ${firstPlayer})`);
     return;
   }
-  
-  console.log(`🔴 Обмежені клітинки для ${currentPlayer} (перший гравець: ${firstPlayer}):`, restrictedCells);
-  console.log('Дошка з позначенням обмежених клітинок:');
   
   for (let row = 0; row < boardSize; row++) {
     const rowData = [];
@@ -1568,7 +1296,5 @@ export function logRestrictedCells(
         rowData.push('·'); // порожня доступна клітинка
       }
     }
-    console.log(rowData.join(' | '));
   }
-  console.log('❌ - заборонені клітинки, · - доступні клітинки');
 }

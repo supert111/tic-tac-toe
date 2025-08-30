@@ -1327,38 +1327,21 @@ export function useGameLogic({
 
   // Додайте нову функцію для ходу з конкретним символом
   const makePlayerMoveWithSymbol = useCallback((index: number, symbol: Player): boolean => {
-    console.log('🎯 makePlayerMoveWithSymbol ПОЧАТОК:', { 
-      index, 
-      symbol, 
-      currentPlayer: currentGame.currentPlayer, 
-      gameActive: currentGame.gameActive,
-      cellValue: currentGame.board.cells[index],
-      fullBoard: currentGame.board.cells 
-    });
-    
-    
+  
     if (!currentGame.gameActive) {
-      console.log('❌ Гра не активна');
+      // console.log('❌ Гра не активна');
       return false;
     }
 
     if (currentGame.board.cells[index] !== '') {
-      console.log('❌ Клітинка вже зайнята:', {
-        index,
-        currentValue: currentGame.board.cells[index],
-        requestedSymbol: symbol
-      });
+      // console.log('❌ Клітинка вже зайнята:', {
+      //   index,
+      //   currentValue: currentGame.board.cells[index],
+      //   requestedSymbol: symbol
+      // });
       return false;
     }
     // ДОДАЙТЕ ДОДАТКОВУ ПЕРЕВІРКУ ДЛЯ AI РЕЖИМУ:
-  // if (symbol !== currentGame.currentPlayer) {
-  //   console.log('❌ Символ не співпадає з поточним гравцем:', { 
-  //     symbol, 
-  //     currentPlayer: currentGame.currentPlayer,
-  //     reason: 'async_state_issue'
-  //   });
-  //   return false;
-  // }
     // 🔥 ДОДАЙТЕ ЦЕЙ ЗАХИСТ:
   if (symbol !== currentGame.currentPlayer) {
     console.log('❌ Символ не співпадає з поточним гравцем:', { 
@@ -1421,14 +1404,6 @@ export function useGameLogic({
         GAME_RESULTS.DRAW : 
         (gameStatus.winner === playerSymbol ? GAME_RESULTS.WIN : GAME_RESULTS.LOSE);
 
-        console.log('🏆 Гра завершена:', {
-          winner: gameStatus.winner,
-          humanPlayerSymbol: playerSymbol,
-          aiSymbol: getOppositePlayer(playerSymbol),
-          result,
-          shouldSubmitTransaction: result === GAME_RESULTS.WIN
-        });
-
       setCurrentGame(prev => ({
         ...prev,
         board: { ...prev.board, cells: newBoard },
@@ -1452,15 +1427,10 @@ export function useGameLogic({
         currentPlayer: nextPlayer,
         isPlayerTurn: nextPlayer// === playerSymbol // Добавляем обновление isPlayerTurn
       }));
-      console.log('🔄 Гравець змінився з', symbol, 'на', nextPlayer);
 
       if (onMoveComplete) {
-        console.log('📞 Викликаємо onMoveComplete з nextPlayer:', nextPlayer);
         onMoveComplete(newBoard, nextPlayer);
-      } else {
-        console.log('⚠️ onMoveComplete не визначено');
       }
-
     }
 
     return true;

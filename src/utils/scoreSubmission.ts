@@ -1,6 +1,4 @@
 // src/utils/scoreSubmission.ts
-//import { BrowserProvider } from 'ethers';
-//import { MONAD_GAMES_CONTRACT_ADDRESS, MONAD_GAMES_ABI } from '../lib/contract/monadGamesContract';
 
 interface SubmitScoreParams {
   playerAddress: string;
@@ -8,49 +6,6 @@ interface SubmitScoreParams {
   transactionsToAdd: number;
 }
 
-// export async function submitScore({ 
-//   playerAddress, 
-//   scoreToAdd, 
-//   transactionsToAdd, 
-//   walletProvider 
-// }: SubmitScoreParams): Promise<boolean> {
-//   try {
-//     console.log('🎯 submitScore викликано з параметрами:', { playerAddress, scoreToAdd, transactionsToAdd });
-//     console.log('🎯 walletProvider тип:', typeof walletProvider);
-//     console.log('🎯 walletProvider:', walletProvider);
-
-//     console.log('🔄 Очікуємо walletProvider...');
-//     const provider = await walletProvider;
-//     console.log('✅ Отримано provider:', provider);
-//     if (!provider) {
-//       console.error('No wallet provider available');
-//       return false;
-//     }
-
-//     const signer = await provider.getSigner();
-//     const contract = new ethers.Contract(
-//       MONAD_GAMES_CONTRACT_ADDRESS, 
-//       MONAD_GAMES_ABI, 
-//       signer
-//     );
-
-//     const tx = await contract.updatePlayerData(
-//       playerAddress,
-//       scoreToAdd,
-//       transactionsToAdd
-//     );
-
-//     await tx.wait();
-//     console.log('Score submitted successfully:', tx.hash);
-//     return true;
-//   } catch (error) {
-//     console.error('Failed to submit score:', error);
-//     return false;
-//   }
-// }
-
-
-//tic-tac-toe\src\utils\scoreSubmission.ts
 export async function submitScore({ 
   playerAddress, 
   scoreToAdd, 
@@ -58,7 +13,7 @@ export async function submitScore({
 }: Omit<SubmitScoreParams, 'walletProvider'>): Promise<boolean> {
   
   // Додайте stack trace щоб побачити звідки викликається:
-  console.trace('submitScore викликано з:');
+//  console.trace('submitScore викликано з:');
 
   try {
     const response = await fetch('/api/submit-score', {

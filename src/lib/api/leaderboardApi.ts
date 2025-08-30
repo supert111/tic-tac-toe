@@ -143,27 +143,6 @@ export async function getPlayerStats(walletAddress: string): Promise<PlayerStats
   }
 }
 
-// Допоміжні функції
-// Спочатку додайте інтерфейс Player в цей файл
-
-// export function convertToPlayerFormat(apiData: LeaderboardEntry[]): Player[] {
-//   return apiData.map((player, index) => ({
-//     id: index + 1,
-//     name: player.username || `Гравець ${player.rank}`,
-//     wins: Math.floor(player.totalScore / 10),
-//     losses: Math.max(0, player.totalTransactions - Math.floor(player.totalScore / 10)),
-//     draws: 0,
-//     points: player.totalScore,
-//     winRate: player.totalTransactions > 0 
-//       ? (Math.floor(player.totalScore / 10) / player.totalTransactions) * 100 
-//       : 0,
-//     streak: Math.random() > 0.5 ? Math.floor(Math.random() * 10) : -Math.floor(Math.random() * 5),
-//     rank: player.rank,
-//     lastActive: new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000).toISOString(),
-//     wallet: player.walletAddress || 'Невідомо'
-//   }));
-// }
-
 export function convertToPlayerFormat(apiData: LeaderboardEntry[]): LeaderboardPlayer[] {
   return apiData.map((player, index) => {
     return {

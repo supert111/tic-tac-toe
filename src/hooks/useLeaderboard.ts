@@ -72,32 +72,11 @@ export function useLeaderboard() {
   const [error, setError] = useState<string | null>(null);
 
   const fetchLeaderboard = useCallback(async () => {
-    console.log('🚀 fetchLeaderboard викликаний, isFetching:', isFetchingRef );
     // Перевіряємо чи вже виконується глобальний запит
     if (isFetchingRef.current) {
-      console.log('⚠️ Запит вже виконується, пропускаємо');
       return;
     }
 
-  //   try {
-  //     isFetchingGlobal = true; // ← Встановлюємо ГЛОБАЛЬНИЙ прапорець
-  //     setLoading(true);
-  //     setError(null);
-      
-  //     const apiData = await getGlobalLeaderboard();
-  //     const convertedData = convertToPlayerFormat(apiData);
-      
-  //     setData(convertedData);
-      
-  //   } catch (err) {
-  //     console.error('💥 Помилка в хуці:', err);
-  //     setError(err instanceof Error ? err.message : 'Помилка завантаження');
-  //     setData([]);
-  //   } finally {
-  //     isFetchingGlobal = false; // ← Скидаємо ГЛОБАЛЬНИЙ прапорець
-  //     setLoading(false);
-  //   }
-  // }, []);
   try {
     isFetchingRef.current = true;
     setLoading(true);
@@ -115,7 +94,6 @@ export function useLeaderboard() {
   } finally {
     isFetchingRef.current = false; 
     setLoading(false);
-    console.log('🏁 fetchLeaderboard завершений');
   }
 }, []);
 

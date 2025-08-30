@@ -82,56 +82,7 @@ export function useMonadAuth(): UseMonadAuthReturn {
     }
   };
 
-  // const getWalletProvider = async (): Promise<BrowserProvider | null> => {
-  //   if (!monadUser?.address) {
-  //     console.log('❌ Немає адреси користувача');
-  //     return null;
-  //   }
-    
-  //   console.log('🔍 Пошук гаманця для адреси:', monadUser.address);
-  // console.log('🔍 Доступні гаманці:', wallets.map(w => ({ 
-  //   address: w.address, 
-  //   walletClientType: w.walletClientType 
-  // })));
-  
-  // // Спочатку шукаємо точний збіг
-  // let wallet = wallets.find(w => 
-  //   w.address?.toLowerCase() === monadUser.address.toLowerCase()
-  // );
-  
-  // // Якщо не знайшли, шукаємо cross-app гаманець
-  // if (!wallet) {
-  //   wallet = wallets.find(w => w.walletClientType === 'cross_app');
-  // }
-  
-  // // Якщо все ще не знайшли, беремо перший доступний
-  // if (!wallet && wallets.length > 0) {
-  //   wallet = wallets[0];
-  // }
-  
-  // if (!wallet) {
-  //   console.error('❌ Гаманець не знайдено');
-  //   return null;
-  // }
-  
-  // console.log('✅ Знайдено гаманець:', wallet.walletClientType, wallet.address);
-  
-  // try {
-  //   const ethereumProvider = await wallet.getEthereumProvider();
-  //   const browserProvider = new BrowserProvider(ethereumProvider);
-  //   console.log('✅ Provider створено успішно');
-  //   return browserProvider;
-  // } catch (error) {
-  //   console.error('❌ Помилка створення provider:', error);
-  //   return null;
-  // }
-  // };
-
-
-
-  // Ефект для обробки змін авторизації
-  
-  
+  // Ефект для обробки змін авторизації  
   const getWalletProvider = async (): Promise<BrowserProvider | null> => {
     if (!authenticated || !ready || !user) {
       console.error('❌ Користувач не авторизований');

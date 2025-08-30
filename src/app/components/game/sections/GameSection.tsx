@@ -7424,29 +7424,10 @@ function GameSection({ className = '' }: GameSectionProps) {
   const [showIconsAfterSizeChange, setShowIconsAfterSizeChange] = React.useState(false);
   const [animationKey, setAnimationKey] = React.useState(0);
 
-
-  // const handleGameEnd = useCallback(async (result: GameResult) => {
-    
-  //   // Відправка очок на контракт
-  //   if (monadUser?.address && result !== 'draw') {
-        
-  //     const scoreToAdd = result === 'win' ? 10 : 0;
-  //     const transactionsToAdd = 1;
-  //       // ЗМІНИТИ: Сервер сам визначає очки
-  //       await submitScore({
-  //         playerAddress: monadUser.address,
-  //         scoreToAdd,  // Тільки для логування
-  //         transactionsToAdd
-  //       });            
-  //   }
-  // }, [monadUser]);
-
   const handleGameEnd = useCallback(async (result: GameResult) => {
-    console.log('📤 GameSection handleGameEnd:', { result, shouldSubmit: result === 'win' });
     
     // Відправка очок на контракт ТІЛЬКИ при перемозі гравця
     if (monadUser?.address && result === 'win') {
-      console.log('🎯 Відправляємо транзакцію - гравець виграв');
       
       const scoreToAdd = 10;
       const transactionsToAdd = 1;
@@ -7456,12 +7437,13 @@ function GameSection({ className = '' }: GameSectionProps) {
         scoreToAdd,
         transactionsToAdd
       });            
-    } else {
-      console.log('❌ Транзакція не відправляється:', { 
-        result, 
-        reason: result === 'lose' ? 'гравець програв' : result === 'draw' ? 'нічия' : 'невідомий результат'
-      });
     }
+    // else {
+    //   console.log('❌ Транзакція не відправляється:', { 
+    //     result, 
+    //     reason: result === 'lose' ? 'гравець програв' : result === 'draw' ? 'нічия' : 'невідомий результат'
+    //   });
+    // }
   }, [monadUser]);
 
   // Ініціалізуємо новий хук управління грою
@@ -7514,8 +7496,6 @@ function GameSection({ className = '' }: GameSectionProps) {
 
   // Обробка кліку по клітинці
   const handleCellClick = useCallback(async (index: number) => {
- 
-
     if (!gameState.canMakeMove(index)) return;
     
     await gameState.makeMove(index);
@@ -7971,7 +7951,7 @@ function GameSection({ className = '' }: GameSectionProps) {
 
               {hasStake && (
                 <div className="flex justify-between items-center">
-                  <span className="text-base font-medium opacity-90">Сума:</span>
+                  <span className="text-base font-medium opacity-90">{t.gameMode.amount}:</span>
                   <input
                     type="number"
                     value={stakeAmount}
