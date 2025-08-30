@@ -32,7 +32,7 @@ export interface PlayerStatsResponse {
   };
 }
 
-export const getLeaderboard = async (gameId: number = 106): Promise<LeaderboardResponse> => {
+export const getLeaderboard = async (gameId: number = 217): Promise<LeaderboardResponse> => {
   const cacheKey = `leaderboard-${gameId}`;
   const cached = apiCache.get(cacheKey);
   
