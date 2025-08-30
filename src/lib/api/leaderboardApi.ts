@@ -105,7 +105,7 @@ export async function getGlobalLeaderboard(): Promise<LeaderboardEntry[]> {
 
   try {
     // const response = await fetch('https://monad-games-id-site.vercel.app/api/leaderboard');
-    const response = await fetch('/api/proxy/leaderboard?gameId=106&sortBy=scores');
+    const response = await fetch('/api/proxy/leaderboard?gameId=217&sortBy=scores');
     if (!response.ok) {
       throw new Error(`Помилка HTTP: ${response.status}`);
     }
