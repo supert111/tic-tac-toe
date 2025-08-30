@@ -483,6 +483,21 @@
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 // Створив src/utils/gameUtils.ts з усіма основними утилітами для гри!
 // Що включено:
 // 🎯 Основна ігрова логіка:
@@ -712,14 +727,6 @@ export function getAvailableMoves(board: CellValue[]): number[] {
  */
 export function makeMove(board: CellValue[], index: number, player: Player): CellValue[] {
 
-// 🔍 ДОДАЙТЕ ЦЕЙ ЛОГ
-console.log('🎯 makeMove викликано:', { 
-  index, 
-  player, 
-  beforeBoard: [...board], 
-  cellValue: board[index] 
-});
-
   if (board[index] !== '') {
     console.warn('⚠️ Спроба ходу в зайняту клітинку!');
     return board; // Або throw error
@@ -731,7 +738,6 @@ console.log('🎯 makeMove викликано:', {
   
   const newBoard = [...board];
   newBoard[index] = player;
-  console.log('✅ makeMove результат:', [...newBoard]);
   return newBoard;
 }
 
@@ -942,18 +948,18 @@ export function clearBoard(size: BoardSize): CellValue[] {
 /**
  * Debug функція для виведення дошки в консоль
  */
-export function logBoard(board: CellValue[], size: BoardSize): void {
-  console.log('Game Board:');
-  for (let row = 0; row < size; row++) {
-    const rowData = [];
-    for (let col = 0; col < size; col++) {
-      const cell = board[row * size + col];
-      rowData.push(cell || '·');
-    }
-    console.log(rowData.join(' | '));
-  }
-  console.log('---');
-}
+// export function logBoard(board: CellValue[], size: BoardSize): void {
+//   console.log('Game Board:');
+//   for (let row = 0; row < size; row++) {
+//     const rowData = [];
+//     for (let col = 0; col < size; col++) {
+//       const cell = board[row * size + col];
+//       rowData.push(cell || '·');
+//     }
+//     console.log(rowData.join(' | '));
+//   }
+//   console.log('---');
+// }
 
 
 

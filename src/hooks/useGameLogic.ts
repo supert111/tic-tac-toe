@@ -381,6 +381,24 @@
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 // // Ключові особливості цього хука:
 // // ✅ Повністю незалежний - не порушує існуючий код
 // // ✅ Універсальний - працює для AI, PvP та майбутніх режимів
@@ -1008,7 +1026,7 @@
 
 
 
-
+//tic-tac-toe\src\hooks\useGameLogic.ts
 // Ключові особливості цього хука:
 // ✅ Повністю незалежний - не порушує існуючий код
 // ✅ Універсальний - працює для AI, PvP та майбутніх режимів
@@ -1138,6 +1156,7 @@ export function useGameLogic({
   onMoveComplete
 }: UseGameLogicOptions): UseGameLogicReturn {
 
+
   // ДОДАТИ СТАН ДЛЯ ПЕРШОГО ГРАВЦЯ:
   const [firstPlayer, setFirstPlayer] = useState<Player>(
     initialFirstPlayer || PLAYER_SYMBOLS.X
@@ -1184,8 +1203,6 @@ export function useGameLogic({
       };
     }
 
-    console.log('🌐 Передаємо мову в getRestrictionInfo:', language); // DEBUG
-
     return getRestrictionInfo(
       currentGame.board.cells, 
       boardSize, 
@@ -1218,26 +1235,6 @@ export function useGameLogic({
     }
   }, [boardSize, currentGame.board.size]);
 
-  // // Обновляем размер доски при изменении (ТІЛЬКИ коли гра НЕ активна)
-  // useEffect(() => {
-  //   if (currentGame.board.size !== boardSize && !currentGame.gameActive) {
-  //     console.log('🔧 Оновлення розміру дошки:', { 
-  //       oldSize: currentGame.board.size, 
-  //       newSize: boardSize, 
-  //       gameActive: currentGame.gameActive 
-  //     });
-      
-  //     const newBoard = createEmptyBoard(boardSize);
-  //     const newConditions = generateWinningConditions(boardSize);
-      
-  //     setCurrentGame(prev => ({
-  //       ...prev,
-  //       board: { cells: newBoard, size: boardSize },
-  //       winningConditions: newConditions,
-  //       winningLine: []
-  //     }));
-  //   }
-  // }, [boardSize, currentGame.board.size, currentGame.gameActive]); // Додали currentGame.gameActive
 
   // Геттеры
   const opponentSymbol = getOppositePlayer(playerSymbol);
@@ -1245,28 +1242,6 @@ export function useGameLogic({
   const isFull = !currentGame.board.cells.includes('');
   const moveCount = currentGame.board.cells.filter(cell => cell !== '').length;
 
-  // Инициализация новой игры
-  // const initializeGame = useCallback((firstPlayer: Player = PLAYER_SYMBOLS.X) => {
-    
-  //   const newBoard = createEmptyBoard(boardSize);
-  //   const newConditions = generateWinningConditions(boardSize);
-  //   const gameId = generateGameId();
-
-  //   setCurrentGame({
-  //     id: gameId,
-  //     board: { cells: newBoard, size: boardSize },
-  //     currentPlayer: firstPlayer,
-  //     gameActive: true,
-  //     gameState: GAME_STATES.PLAYING,
-  //     winningConditions: newConditions,
-  //     winningLine: [],
-  //     result: null,
-  //     startTime: Date.now(),
-  //     endTime: null
-  //   });
-
-  //   setMoveHistory([]);
-  // }, [boardSize]);
 
   const initializeGame = useCallback((firstPlayer?: Player) => {
     const startingPlayer = firstPlayer || PLAYER_SYMBOLS.X; // Використовуємо переданий параметр
@@ -1275,13 +1250,6 @@ export function useGameLogic({
     const newBoard = createEmptyBoard(boardSize);
     const newConditions = generateWinningConditions(boardSize);
     const gameId = generateGameId();
-  
-    console.log('Ініціалізація гри з першим гравцем:', startingPlayer);
-    console.log('🔧 Створення нового стану гри:', {
-      firstPlayer: startingPlayer,
-      gameActive: true,
-      gameState: GAME_STATES.PLAYING
-    });
   
     setCurrentGame({
       id: gameId,
@@ -1296,11 +1264,6 @@ export function useGameLogic({
       endTime: null
     });
 
-    console.log('✅ Стан гри оновлено:', {
-      currentPlayer: startingPlayer,
-      gameActive: true
-    });
-  
     setMoveHistory([]);
   }, [boardSize]);
 
@@ -1361,97 +1324,49 @@ export function useGameLogic({
     return makeMove(currentGame.board.cells, index, player);
   }, [currentGame.board.cells]);
 
-  // Выполнение хода игрока (останніВИПРАВЛЕННЯ)
-  // const makePlayerMove = useCallback((index: number): boolean => {
-  //   console.log('Початок makePlayerMove. Поточний гравець:', currentGame.currentPlayer); // Додано
-  //   if (!canMakeMove(index)) {
-  //     console.log('Хід неможливий'); // Додано
-  //     return false;
-  //   }
-
-  //   try {
-  //     const newBoard = makeMove(currentGame.board.cells, index, currentGame.currentPlayer);
-  //     console.log('Після makeMove. Нова дошка:', newBoard, 'Символ який поставили:', currentGame.currentPlayer); // Змініть цей лог
-      
-  //     // Добавляем в историю
-  //     setMoveHistory(prev => [...prev, {
-  //       board: cloneBoard(currentGame.board.cells),
-  //       player: currentGame.currentPlayer,
-  //       moveIndex: index,
-  //       timestamp: Date.now()
-  //     }]);
-
-  //     // Проверяем результат игры
-  //     const gameStatus = isGameFinished(newBoard, currentGame.winningConditions);
-      
-  //     if (gameStatus.finished) {
-  //       // Игра закончена
-  //       const result: GameResult = gameStatus.isDraw ? 
-  //         GAME_RESULTS.DRAW : 
-  //         (gameStatus.winner === playerSymbol ? GAME_RESULTS.WIN : GAME_RESULTS.LOSE);
-
-  //       setCurrentGame(prev => ({
-  //         ...prev,
-  //         board: { ...prev.board, cells: newBoard },
-  //         gameActive: false,
-  //         gameState: GAME_STATES.FINISHED,
-  //         winningLine: gameStatus.winningLine,
-  //         result,
-  //         endTime: Date.now()
-  //       }));
-
-  //       // Вызываем callback окончания игры
-  //       onGameEnd?.(result, gameStatus.winner || undefined);
-  //     } else {
-  //       // Игра продолжается
-  //       const nextPlayer = getOppositePlayer(currentGame.currentPlayer);
-  //       console.log('Наступний гравець буде:', nextPlayer); // Додано
-        
-  //       // setCurrentGame(prev => ({
-  //       //   ...prev,
-  //       //   board: { ...prev.board, cells: newBoard },
-  //       //   currentPlayer: nextPlayer
-  //       // }));
-
-  //       setCurrentGame(prev => {
-  //         console.log('Оновлення стану. Новий гравець:', nextPlayer); // Додано
-  //         return {
-  //           ...prev,
-  //           board: { ...prev.board, cells: newBoard },
-  //           currentPlayer: nextPlayer
-  //         };
-  //       });
-
-  //       // Вызываем callback хода
-  //       onMoveComplete?.(newBoard, nextPlayer);
-  //     }
-
-  //     return true;
-  //   } catch (error) {
-  //     console.error('Error making move:', error);
-  //     return false;
-  //   }
-  // }, [
-  //   canMakeMove, 
-  //   currentGame.board.cells, 
-  //   currentGame.currentPlayer, 
-  //   currentGame.winningConditions,
-  //   playerSymbol,
-  //   onGameEnd,
-  //   onMoveComplete
-  // ]);
-
-
-  ////////////////////////////////////////////////////////////////////////////
 
   // Додайте нову функцію для ходу з конкретним символом
   const makePlayerMoveWithSymbol = useCallback((index: number, symbol: Player): boolean => {
-    console.log('Початок makePlayerMoveWithSymbol. Символ:', symbol, 'Індекс:', index);
+    console.log('🎯 makePlayerMoveWithSymbol ПОЧАТОК:', { 
+      index, 
+      symbol, 
+      currentPlayer: currentGame.currentPlayer, 
+      gameActive: currentGame.gameActive,
+      cellValue: currentGame.board.cells[index],
+      fullBoard: currentGame.board.cells 
+    });
+    
     
     if (!currentGame.gameActive) {
-      console.log('Гра не активна');
+      console.log('❌ Гра не активна');
       return false;
     }
+
+    if (currentGame.board.cells[index] !== '') {
+      console.log('❌ Клітинка вже зайнята:', {
+        index,
+        currentValue: currentGame.board.cells[index],
+        requestedSymbol: symbol
+      });
+      return false;
+    }
+    // ДОДАЙТЕ ДОДАТКОВУ ПЕРЕВІРКУ ДЛЯ AI РЕЖИМУ:
+  // if (symbol !== currentGame.currentPlayer) {
+  //   console.log('❌ Символ не співпадає з поточним гравцем:', { 
+  //     symbol, 
+  //     currentPlayer: currentGame.currentPlayer,
+  //     reason: 'async_state_issue'
+  //   });
+  //   return false;
+  // }
+    // 🔥 ДОДАЙТЕ ЦЕЙ ЗАХИСТ:
+  if (symbol !== currentGame.currentPlayer) {
+    console.log('❌ Символ не співпадає з поточним гравцем:', { 
+      symbol, 
+      currentPlayer: currentGame.currentPlayer 
+    });
+    return false;
+  }
   
     // ВИПРАВЛЕНА ПЕРЕВІРКА - залежить від розміру дошки:
     let isValidMoveCheck: boolean;
@@ -1471,30 +1386,23 @@ export function useGameLogic({
     }
   
     if (!isValidMoveCheck) {
-      console.log('Хід неможливий');
       
       // Додаткова інформація для 4×4
       if (boardSize === 4) {
         const validation = validateMove(currentGame.board.cells, index, symbol, boardSize, firstPlayer);
         if (!validation.isValid && validation.reason === 'restricted') {
-          console.log('Хід заборонений через обмеження 4×4:', validation.restrictedCells);
         }
       }
       return false;
     }
 
   try {
-    // const newBoard = makeMove(currentGame.board.cells, index, symbol);
-    // console.log('Після makeMove. Нова дошка:', newBoard, 'Символ який поставили:', symbol);
-    // На:
+ 
     const newBoard = [...currentGame.board.cells]; // Клонуємо дошку
     if (newBoard[index] !== '') {
-      console.error('❌ Спроба ходу в зайняту клітинку:', index, 'Поточне значення:', newBoard[index]);
-      console.error('❌ Поточний стан дошки:', newBoard);
       return false;
     }
     newBoard[index] = symbol; // Ставимо символ
-    console.log('🎯 Безпечний makeMove. Нова дошка:', [...newBoard]);
     
     // Добавляем в историю
     setMoveHistory(prev => [...prev, {
@@ -1506,44 +1414,20 @@ export function useGameLogic({
 
     // Проверяем результат игры
     const gameStatus = isGameFinished(newBoard, currentGame.winningConditions);
-
-    ///////////////////////////////////////////////////
-    // ДОДАТИ ЦЕЙ DEBUG КОД:
-if (gameStatus.finished && !gameStatus.isDraw) {
-  console.log('🏆 ДЕТАЛЬНИЙ АНАЛІЗ ПЕРЕМОГИ:');
-  console.log('Переможець:', gameStatus.winner);
-  console.log('Переможна лінія:', gameStatus.winningLine);
-  console.log('Стан дошки після ходу:', newBoard);
-  
-  // Показуємо які символи в переможній лінії
-  const winningCells = gameStatus.winningLine.map(index => ({
-    index,
-    symbol: newBoard[index]
-  }));
-  console.log('Клітинки переможної лінії:', winningCells);
-  
-  // Візуалізація дошки 4×4
-  if (boardSize === 4) {
-    console.log('📋 ВІЗУАЛІЗАЦІЯ 4×4:');
-    for (let row = 0; row < 4; row++) {
-      const rowData = [];
-      for (let col = 0; col < 4; col++) {
-        const index = row * 4 + col;
-        const cell = newBoard[index] || '·';
-        const isWinning = gameStatus.winningLine.includes(index) ? '🟢' : '';
-        rowData.push(`${cell}${isWinning}`);
-      }
-      console.log(`Рядок ${row}:`, rowData.join(' | '));
-    }
-  }
-}
-    /////////////////////////////////////////////////////
     
     if (gameStatus.finished) {
       // Игра закончена
       const result: GameResult = gameStatus.isDraw ? 
         GAME_RESULTS.DRAW : 
         (gameStatus.winner === playerSymbol ? GAME_RESULTS.WIN : GAME_RESULTS.LOSE);
+
+        console.log('🏆 Гра завершена:', {
+          winner: gameStatus.winner,
+          humanPlayerSymbol: playerSymbol,
+          aiSymbol: getOppositePlayer(playerSymbol),
+          result,
+          shouldSubmitTransaction: result === GAME_RESULTS.WIN
+        });
 
       setCurrentGame(prev => ({
         ...prev,
@@ -1561,7 +1445,6 @@ if (gameStatus.finished && !gameStatus.isDraw) {
     } else {
       // Игра продолжается
       const nextPlayer = getOppositePlayer(symbol);
-      console.log('Наступний гравець буде:', nextPlayer);
       
       setCurrentGame(prev => ({
         ...prev,
@@ -1569,10 +1452,15 @@ if (gameStatus.finished && !gameStatus.isDraw) {
         currentPlayer: nextPlayer,
         isPlayerTurn: nextPlayer// === playerSymbol // Добавляем обновление isPlayerTurn
       }));
+      console.log('🔄 Гравець змінився з', symbol, 'на', nextPlayer);
 
-      // Вызываем callback хода
-      // ОНОВЛЕНИЙ CALLBACK З ОБМЕЖЕННЯМИ:
-      onMoveComplete?.(newBoard, nextPlayer);
+      if (onMoveComplete) {
+        console.log('📞 Викликаємо onMoveComplete з nextPlayer:', nextPlayer);
+        onMoveComplete(newBoard, nextPlayer);
+      } else {
+        console.log('⚠️ onMoveComplete не визначено');
+      }
+
     }
 
     return true;
@@ -1618,11 +1506,6 @@ const makePlayerMove = useCallback((index: number): boolean => {
     setMoveHistory(prev => prev.slice(0, -1));
     return true;
   }, [moveHistory, currentGame.gameActive]);
-
-  // Сброс игры
-  // const resetGame = useCallback(() => {
-  //   initializeGame(currentGame.currentPlayer);
-  // }, [initializeGame, currentGame.currentPlayer]);
 
   const resetGame = useCallback(() => {
     initializeGame(); // Видалили аргумент
@@ -1672,7 +1555,7 @@ const makePlayerMove = useCallback((index: number): boolean => {
   }, [currentGame.gameState]);
 
   // Принудительное завершение игры
-  const endGame = useCallback((result: GameResult, winner?: Player) => {
+  const endGame = useCallback(async (result: GameResult, winner?: Player) => {
     setCurrentGame(prev => ({
       ...prev,
       gameActive: false,
@@ -1680,7 +1563,7 @@ const makePlayerMove = useCallback((index: number): boolean => {
       result,
       endTime: Date.now()
     }));
-
+  
     onGameEnd?.(result, winner);
   }, [onGameEnd]);
 

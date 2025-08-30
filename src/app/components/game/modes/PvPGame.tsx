@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import GameCell from '../GameCell';
-import GameModal from '../GameModal';
+import GameCell from '../NotUseGameCell';
+import GameModal from '../NotUseGameModal';
 
 type Player = 'X' | 'O';
 type FirstMove = 'random' | 'creator' | 'opponent';

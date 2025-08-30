@@ -348,7 +348,7 @@ export default function Home() {
           <RightPanel />
 
           {/* Турніри - ПРИХОВУЄМО на мобільній версії */}
-          <div className="hidden">
+          <div className="xl:hidden space-y-4">
             <TournamentSection />
           </div>
         </div>

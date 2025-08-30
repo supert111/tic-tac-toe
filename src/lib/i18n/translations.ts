@@ -224,7 +224,7 @@ export const translations = {
     uk: {
       // Турніри
       tournaments: {
-        title: "🏆 Турніри",
+        title: "Турніри",
         all: "Всі",
         active: "Активні",
         upcoming: "Майбутні",
@@ -242,14 +242,32 @@ export const translations = {
         noPlaces: "❌ Місць немає",
         results: "📊 Результати",
         finished: "🏁 Завершено",
-        noTournaments: "Турнірів у цій категорії немає"
+        noTournaments: "Турнірів у цій категорії немає",
+        comingSoon: "Турніри будуть доступні незабаром",
+        messageTurnaments: 'Функціональність турнірів буде додана пізніше'
       },
       
+      // Лідерборд  
+      leaderboard: {
+        title: "⚡ ЛІДЕРБОРД ⚡",
+        online: "ОНЛАЙН", 
+        points: "ОЧКИ",
+        refresh: "ОНОВИТИ",
+        player: "ГРАВЕЦЬ",
+        wallet: "ГАМАНЕЦЬ",
+        loading: "ЗАВАНТАЖЕННЯ...",
+        noPlayers: "НЕМАЄ ГРАВЦІВ",
+        playersCount: "ГРАВЦІВ",
+        apiStatus: "API",
+        connected: "ПІДКЛЮЧЕНО"
+      },
+
       // Ігровий режим
       gameMode: {
         createGame: "Створити гру",
         createTournament: "Створити турнір", 
         availableGames: "Онлайн ігри",
+        availableGamesMessage: 'Огляд ігор буде додано пізніше.',
         ai: "🤖 AI",
         pvp: "⚔️ PvP",
         crossesZeros: "Хрестики-нулики",
@@ -297,6 +315,8 @@ export const translations = {
             unknown: 'Невідомий стан',
             moves: "Ходів:",
             moveTime: "Час на хід",
+            writeMessage: 'Напишіть повідомлення...',
+            chatMessage: 'Чат буде доступний після підключення до сервера',
             symbols: {
               X: "Хрестик", 
               O: "Нулик"
@@ -388,7 +408,7 @@ export const translations = {
     en: {
       // Tournaments
       tournaments: {
-        title: "🏆 Tournaments",
+        title: "Tournaments",
         all: "All",
         active: "Active",
         upcoming: "Upcoming",
@@ -406,7 +426,24 @@ export const translations = {
         noPlaces: "❌ No Places",
         results: "📊 Results",
         finished: "🏁 Finished",
-        noTournaments: "No tournaments in this category"
+        noTournaments: "No tournaments in this category",
+        comingSoon: "Tournaments will be available soon",
+        messageTurnaments: 'Tournament functionality will be added later'
+      },
+
+      // Leaderboard
+      leaderboard: {
+        title: "⚡ LEADERBOARD ⚡", 
+        online: "ONLINE",
+        points: "SCORE",
+        refresh: "REFRESH", 
+        player: "PLAYER",
+        wallet: "WALLET",
+        loading: "LOADING...",
+        noPlayers: "NO PLAYERS",
+        playersCount: "PLAYERS",
+        apiStatus: "API",
+        connected: "CONNECTED"
       },
       
       // Game Mode
@@ -414,6 +451,7 @@ export const translations = {
         createGame: "Create Game",
         createTournament: "Create Tournament",
         availableGames: "Online Games",
+        availableGamesMessage: 'Games overview will be added later',
         ai: "🤖 AI",
         pvp: "⚔️ PvP",
         crossesZeros: "Tic-Tac-Toe",
@@ -460,6 +498,8 @@ export const translations = {
         unknown: 'Unknown State',
         moves: "Steps:",
         moveTime: "Time per step",
+        writeMessage: 'Write a message...',
+        chatMessage: 'Chat will be available after connecting to the server',
         symbols: {
           X: 'Cross',
           O: 'Circle'

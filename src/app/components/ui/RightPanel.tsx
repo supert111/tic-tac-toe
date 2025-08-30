@@ -274,42 +274,47 @@
 // src/app/sections/RightPanel.tsx
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo, memo } from 'react';
 import { useTranslation } from '../../../lib/i18n';
 import WalletConnection from './WalletConnection';
 import ProfileSection from './ProfileSection';
 import ChatSection from './ChatSection';
 import Leaderboard from './Leaderboard';
 
+const MemoizedLeaderboard = memo(() => <Leaderboard />);
+MemoizedLeaderboard.displayName = 'MemoizedLeaderboard';
+
 export default function RightPanel() {
   const { t } = useTranslation();
-  const [activeTab, setActiveTab] = useState<'profile' | 'leaderboard' | 'chat'>('profile');
+  const [activeTab, setActiveTab] = useState<'profile' | 'leaderboard' | 'chat'>('leaderboard');
 
   const tabs = [
-    { id: 'profile' as const, label: t.tabs.profile, icon: '👤' },
     { id: 'leaderboard' as const, label: t.tabs.leaderboard, icon: '🏆' },
+    { id: 'profile' as const, label: t.tabs.profile, icon: '👤' },
     { id: 'chat' as const, label: t.tabs.chat, icon: '💬' },
   ];
 
-  const renderContent = () => {
+  // Мемоізуйте renderContent
+  const renderContent = useMemo(() => {
     switch (activeTab) {
+      case 'leaderboard':
+        return <MemoizedLeaderboard />;
       case 'profile':
         return <ProfileSection />;
-      case 'leaderboard':
-        return <Leaderboard />;
       case 'chat':
         return <ChatSection />;
       default:
-        return <ProfileSection />;
+        return <MemoizedLeaderboard />;
     }
-  };
+  }, [activeTab]);
 
   return (
     <div className="space-y-3 lg:space-y-4"> {/* Менше відступів на мобільній */}
       {/* Гаманець вгорі */}
       <div className="relative bg-gradient-to-br from-gray-800/50 via-purple-800/50 to-gray-800/50 backdrop-blur-md rounded-3xl p-4 lg:p-6 shadow-2xl z-[30] border border-purple-500/20">
         {/* Приховуємо заголовок на мобільній версії */}
-        <h2 className="hidden lg:block text-2xl font-bold mb-4 text-center">{t.wallet.title}</h2>
+        <h2 className="hidden text-2xl font-bold mb-4 text-center">{t.wallet.title}</h2>
+        {/* <h2 className="hidden lg:block text-2xl font-bold mb-4 text-center">{t.wallet.title}</h2> */}
         <WalletConnection />
       </div>
 
@@ -339,7 +344,7 @@ export default function RightPanel() {
 
         {/* Контент */}
         <div className="min-h-[400px]">
-          {renderContent()}
+          {renderContent}
         </div>
       </div>
     </div>

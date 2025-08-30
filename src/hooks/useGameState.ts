@@ -2636,6 +2636,8 @@
 
 
 
+
+
 // //last1// hooks/useGameState.ts
 // // Головний хук для управління станом гри
 // // ✅ Використовує справжні хуки: useGameLogic, useAI, useTimer
@@ -3371,8 +3373,8 @@ const DEFAULT_SETTINGS: GameSettings = {
   playerSymbol: PLAYER_SYMBOLS.X,
   aiDifficulty: 'medium',
   timerEnabled: false,
-  timePerMove: 30,
-  aiThinkingTime: 5000 // 🔥 Збільшуємо до 2 секунд
+  timePerMove: 60,
+  aiThinkingTime: 1000 // 🔥 Збільшуємо до 2 секунд
 };
 
 const DEFAULT_STATS: SessionStats = {
@@ -3447,6 +3449,12 @@ export function useGameState({
 
   // Обробники подій
   function handleGameEnd(result: GameResult, winner?: Player) {
+    console.log('🎮 handleGameEnd викликано:', { 
+      result, 
+      winner, 
+      playerSymbol: settings.playerSymbol,
+      shouldSubmitScore: result === 'win'
+    });
     // Оновлюємо статистику
     updateSessionStats(result);
     
@@ -3465,14 +3473,39 @@ export function useGameState({
   }
 
   function handleMoveComplete(board: CellValue[], nextPlayer: Player) {
-    console.log('🔄 handleMoveComplete викликано:', { nextPlayer, gameMode: settings.gameMode, boardSize: settings.boardSize,
-      restrictedCells: gameLogic.restrictedCells}); // ДОДАНО });
-    // Скидаємо таймер для наступного ходу
+    console.log('🔄 handleMoveComplete викликано:', { 
+      nextPlayer, 
+      gameMode: settings.gameMode, 
+      // currentPlayerInState: gameLogic.currentPlayer,
+      // boardSize: settings.boardSize,
+      // timestamp: Date.now()
+    });
+  
+    // Скидаємо таймер
     if (settings.timerEnabled) {
       timer.resetMoveTimer();
     }
-
-    // Не викликаємо AI тут, тому що useEffect буде обробляти це
+  
+    //Коментую код
+    // КРИТИЧНЕ ВИПРАВЛЕННЯ - чекаємо оновлення стану React
+    // setTimeout(() => {
+    //   if (settings.gameMode === 'ai' && gameLogic.gameActive) {
+    //     const aiSymbol = settings.playerSymbol === PLAYER_SYMBOLS.X ? PLAYER_SYMBOLS.O : PLAYER_SYMBOLS.X;
+        
+    //     console.log('🔍 handleMoveComplete перевірка AI:', {
+    //       nextPlayer,
+    //       currentPlayerAfterTimeout: gameLogic.currentPlayer,
+    //       aiSymbol,
+    //       shouldMakeAIMove: nextPlayer === aiSymbol
+    //     });
+  
+    //     // Якщо наступний гравець - AI, запускаємо AI хід
+    //     if (nextPlayer === aiSymbol && !aiMoveInProgressRef.current && !ai.isThinking) {
+    //       console.log('🤖 handleMoveComplete запускає AI хід');
+    //       makeAIMoveForPlayer(nextPlayer); // <- використовуємо nextPlayer
+    //     }
+    //   }
+    // }, 400); // Мала затримка для оновлення стану
   }
 
   function handleTimeUp() {
@@ -3531,108 +3564,125 @@ export function useGameState({
   // AI хід з конкретним гравцем (нова функція)
   const makeAIMoveForPlayer = useCallback(async (player: Player) => {
 
-    if (ai.isThinking || aiMoveInProgressRef.current) {
-      console.log('🚫 AI вже думає або хід в процесі');
+    if (ai.isThinking) {
+      console.log('🚫 AI вже думає');
       return;
     }
 
-    aiMoveInProgressRef.current = true; // 🔥 БЛОКУЄМО
+    if (aiMoveInProgressRef.current) {
+      console.log('🚫 AI хід вже в процесі');
+      return;
+    }
+
+    if (!gameLogic.gameActive) {
+      console.log('❌ Гра не активна');
+      return;
+    }
+
+    // if (ai.isThinking || aiMoveInProgressRef.current) {
+    //   console.log('🚫 AI вже думає або хід в процесі');
+    //   return;
+    // }
+
+
+    if (gameLogic.currentPlayer !== player) {
+      console.log('❌ Зараз не хід AI:', {
+        currentPlayer: gameLogic.currentPlayer,
+        requestedPlayer: player
+      });
+      return;
+    }
+
     const aiSymbol = settings.playerSymbol === PLAYER_SYMBOLS.X ? PLAYER_SYMBOLS.O : PLAYER_SYMBOLS.X;
-    
-    console.log('🤖 makeAIMoveForPlayer ДЕТАЛЬНИЙ ЛОГ:', {
-      gameActive: gameLogic.gameActive,
-      requestedPlayer: player,
-      currentPlayer: gameLogic.currentPlayer,
-      playerSymbol: settings.playerSymbol,
-      calculatedAISymbol: aiSymbol,
-      playersMatch: player === aiSymbol,
-      currentMatch: player === gameLogic.currentPlayer,
-      shouldAIMove: player === aiSymbol && player === gameLogic.currentPlayer && gameLogic.gameActive,
-      boardSize: settings.boardSize,
-      restrictedCells: gameLogic.restrictedCells // ДОДАНО
-    });
-    
-    if (!gameLogic.gameActive || player !== aiSymbol || player !== gameLogic.currentPlayer) {
-      console.log('❌ AI не може зробити хід - умови не виконані:', {
-        gameActive: gameLogic.gameActive,
-        playerMatch: player === aiSymbol,
-        currentMatch: player === gameLogic.currentPlayer
-      });
+    if (player !== aiSymbol) {
+      console.log('❌ Невірний символ для AI');
       return;
     }
+    aiMoveInProgressRef.current = true; // 🔥 БЛОКУЄМО
+    // ВИПРАВЛЕНА перевірка - використовуємо переданий параметр
+    // if (player !== aiSymbol) {
+    //   console.log('❌ AI хід скасовано - неправильний гравець запитаний');
+    //   aiMoveInProgressRef.current = false;
+    //   return;
+    // }
+    //const aiSymbol = settings.playerSymbol === PLAYER_SYMBOLS.X ? PLAYER_SYMBOLS.O : PLAYER_SYMBOLS.X;
+    
+    // console.log('🤖 makeAIMoveForPlayer ДЕТАЛЬНИЙ ЛОГ:', {
+    //   gameActive: gameLogic.gameActive,
+    //   requestedPlayer: player,
+    //   currentPlayer: gameLogic.currentPlayer,
+    //   playerSymbol: settings.playerSymbol,
+    //   calculatedAISymbol: aiSymbol,
+    //   playersMatch: player === aiSymbol,
+    //   currentMatch: player === gameLogic.currentPlayer,
+    //   shouldAIMove: player === aiSymbol && player === gameLogic.currentPlayer && gameLogic.gameActive,
+    //   boardSize: settings.boardSize,
+    //   restrictedCells: gameLogic.restrictedCells // ДОДАНО
+    // });
+    
+    // if (!gameLogic.gameActive || player !== aiSymbol) {
+    //   console.log('❌ AI не може зробити хід - основні умови не виконані:', {
+    //     gameActive: gameLogic.gameActive,
+    //     playerMatch: player === aiSymbol
+    //   });
+    //   aiMoveInProgressRef.current = false;
+    //   return;
+    // }
 
-    console.log('🎯 AI починає розрахунок ходу');
-    try {
-      await new Promise(resolve => setTimeout(resolve, settings.aiThinkingTime));
-      const moveIndex = await ai.makeAIMove(gameLogic.board, settings.boardSize, gameLogic.restrictedCells, gameLogic.firstPlayer);
-      console.log('🔧 Дані для AI:', {
-        board: gameLogic.board,
-        boardSize: settings.boardSize,
-        restrictedCells: gameLogic.restrictedCells,
-        firstPlayer: gameLogic.firstPlayer, // ✅ Це має бути правильне значення
-        aiSymbol: aiSymbol
-      });
+    // console.log('🎯 AI починає розрахунок ходу');
+try {
+  await new Promise(resolve => setTimeout(resolve, settings.aiThinkingTime));
+  const moveIndex = await ai.makeAIMove(gameLogic.board, settings.boardSize, gameLogic.restrictedCells, gameLogic.firstPlayer);
+  
+  console.log('🔧 Дані для AI:', {
+    board: gameLogic.board,
+    boardSize: settings.boardSize,
+    restrictedCells: gameLogic.restrictedCells,
+    firstPlayer: gameLogic.firstPlayer,
+    aiSymbol: aiSymbol
+  });
+  
+  let finalMoveIndex = moveIndex;
+  
+  // Якщо AI не знайшов хід або хід невалідний - знайти запасний
+  if (moveIndex === -1 || gameLogic.board[moveIndex] !== '') {
+    console.log('❌ AI хід невалідний, шукаємо запасний');
+    const availableMoves = settings.boardSize === 4 ? 
+      gameLogic.getAvailableMovesWithRestrictions() :
+      gameLogic.getAvailableMoves();
       
-      //if (moveIndex !== -1 && gameLogic.canMakeMove(moveIndex)) {
-        if (moveIndex !== -1) {
-        console.log('✅ Виконуємо AI хід');
-
-        if (gameLogic.currentPlayer !== aiSymbol) {
-          console.log('❌ AI хід скасовано - гравець змінився');
-          return;
-        }
-      // ВИКОРИСТОВУЄМО НОВУ ПЕРЕВІРКУ З ОБМЕЖЕННЯМИ:
-      const canMove = settings.boardSize === 4 ? 
-        gameLogic.canMakeMoveWithRestrictions(moveIndex) :
-        gameLogic.canMakeMove(moveIndex);
-
-        if (canMove) {
-        console.log('✅ Виконуємо AI хід');
-        // 🔥 ДОДАЙТЕ ЦЮ ПЕРЕВІРКУ
-        if (gameLogic.board[moveIndex] !== '') {
-          console.error('❌ Клітинка вже зайнята!', moveIndex, gameLogic.board[moveIndex]);
-          return;
-        }
-        const success = gameLogic.makePlayerMoveWithSymbol(moveIndex, aiSymbol);
-        if (!success) {
-          console.error('❌ AI хід не вдався, спробуємо знайти альтернативу');
-          // ВИКОРИСТОВУЄМО ДОСТУПНІ ХОДИ З УРАХУВАННЯМ ОБМЕЖЕНЬ:
-          const availableMoves = settings.boardSize === 4 ? 
-            gameLogic.getAvailableMovesWithRestrictions() :
-            gameLogic.getAvailableMoves();
-            
-          if (availableMoves.length > 0) {
-            gameLogic.makePlayerMoveWithSymbol(availableMoves[0], aiSymbol);
-          }
-        }
-      } else {
-        console.log('❌ AI хід порушує обмеження:', moveIndex);
-        // ЗАПАСНИЙ ВАРІАНТ З УРАХУВАННЯМ ОБМЕЖЕНЬ:
-        const availableMoves = settings.boardSize === 4 ? 
-          gameLogic.getAvailableMovesWithRestrictions() :
-          gameLogic.getAvailableMoves();
-          
-        if (availableMoves.length > 0) {
-          console.log('🔄 Використовуємо запасний хід з урахуванням обмежень:', availableMoves[0]);
-          gameLogic.makePlayerMoveWithSymbol(availableMoves[0], aiSymbol);
-        }
-      }
+    if (availableMoves.length > 0) {
+      finalMoveIndex = availableMoves[0];
+      console.log('🔄 Використовуємо запасний хід:', finalMoveIndex);
     } else {
-      console.log('❌ AI не знайшов валідного ходу');
-      const availableMoves = settings.boardSize === 4 ? 
-        gameLogic.getAvailableMovesWithRestrictions() :
-        gameLogic.getAvailableMoves();
-        
-      if (availableMoves.length > 0) {
-        console.log('🔄 Використовуємо будь-який доступний хід:', availableMoves[0]);
-        gameLogic.makePlayerMoveWithSymbol(availableMoves[0], aiSymbol);
-      }
+      console.error('❌ Немає доступних ходів');
+      return;
     }
-  } catch (error) {
-    console.error('🔥 Помилка AI ходу:', error);
-  } finally {
-    aiMoveInProgressRef.current = false; // 🔥 ДОДАЙТЕ ЦЕ СЮДИ
   }
+  
+  // Перевірка валідності запасного ходу
+  const canMove = settings.boardSize === 4 ? 
+    gameLogic.canMakeMoveWithRestrictions(finalMoveIndex) :
+    gameLogic.canMakeMove(finalMoveIndex);
+    
+  if (!canMove) {
+    console.error('❌ Запасний хід також невалідний');
+    return;
+  }
+  
+  // ЄДИНИЙ виклик makePlayerMoveWithSymbol
+  console.log('✅ Виконуємо AI хід на позицію:', finalMoveIndex);
+  const success = gameLogic.makePlayerMoveWithSymbol(finalMoveIndex, aiSymbol);
+  
+  if (!success) {
+    console.error('❌ AI хід не вдався навіть з валідною позицією');
+  }
+  
+} catch (error) {
+  console.error('🔥 Помилка AI ходу:', error);
+} finally {
+  aiMoveInProgressRef.current = false;
+}
 }, [gameLogic, ai, settings.playerSymbol, settings.boardSize]);
 
   // Початок нової гри
@@ -3823,27 +3873,104 @@ export function useGameState({
   //     return () => clearTimeout(timeoutId);
   //   }
   // }, [gameLogic.gameActive, gameLogic.currentPlayer, settings.gameMode, settings.playerSymbol, ai.isThinking, makeAIMoveForPlayer, gameLogic.board]); //gameLogic.board
-  useEffect(() => {
-    const aiSymbol = settings.playerSymbol === PLAYER_SYMBOLS.X ? PLAYER_SYMBOLS.O : PLAYER_SYMBOLS.X;
-    
-    console.log('🔍 useEffect AI перевірка:', {
-      gameMode: settings.gameMode,
-      gameActive: gameLogic.gameActive,
-      currentPlayer: gameLogic.currentPlayer,
-      isAIPlayer: gameLogic.currentPlayer === aiSymbol,
-      isAIThinking: ai.isThinking
-    });
+
+  // Ефект для автоматичного AI ходу - ВИПРАВЛЕНА ВЕРСІЯ
+// Ефект для автоматичного AI ходу - ВИПРАВЛЕНА ВЕРСІЯ
+useEffect(() => {
+  // Виходимо якщо не AI режим або гра не активна
+  if (settings.gameMode !== 'ai' || !gameLogic.gameActive) {
+    return;
+  }
+
+  const aiSymbol = settings.playerSymbol === PLAYER_SYMBOLS.X ? PLAYER_SYMBOLS.O : PLAYER_SYMBOLS.X;
   
-    // 🔥 ВИДАЛИЛИ timer.startTimer() звідси
-    if (settings.gameMode === GAME_MODES.AI && 
-        gameLogic.gameActive && 
-        gameLogic.currentPlayer === aiSymbol &&
-        !ai.isThinking) {
+  // КРИТИЧНА ПЕРЕВІРКА: AI ходить тільки коли зараз його черга
+  const shouldAIMakeMove = gameLogic.currentPlayer === aiSymbol && 
+                          !ai.isThinking && 
+                          !aiMoveInProgressRef.current;
+
+  console.log('🔍 useEffect AI перевірка:', {
+    currentPlayer: gameLogic.currentPlayer,
+    aiSymbol,
+    playerSymbol: settings.playerSymbol,
+    shouldAIMakeMove,
+    isThinking: ai.isThinking,
+    moveInProgress: aiMoveInProgressRef.current
+  });
+
+  if (shouldAIMakeMove) {
+    console.log('🤖 useEffect: Запускаємо AI хід для', aiSymbol);
+    
+    const timeoutId = setTimeout(() => {
+      // Додаткова перевірка перед викликом
+      if (gameLogic.gameActive && 
+          gameLogic.currentPlayer === aiSymbol && 
+          !aiMoveInProgressRef.current && 
+          !ai.isThinking) {
+        makeAIMoveForPlayer(aiSymbol);
+      } else {
+        console.log('❌ AI хід скасовано - умови змінилися');
+      }
+    }, 500); // Збільшена затримка
+    
+    return () => clearTimeout(timeoutId);
+  }
+}, [
+  settings.gameMode, 
+  gameLogic.gameActive, 
+  gameLogic.currentPlayer, 
+  settings.playerSymbol, 
+  ai.isThinking
+]);
+
+
+  // useEffect(() => {
+  //   const aiSymbol = settings.playerSymbol === PLAYER_SYMBOLS.X ? PLAYER_SYMBOLS.O : PLAYER_SYMBOLS.X;
+  
+  //   // 🔥 ВИДАЛИЛИ timer.startTimer() звідси
+  //   if (settings.gameMode === GAME_MODES.AI && 
+  //       gameLogic.gameActive && 
+  //       gameLogic.currentPlayer === aiSymbol &&
+  //       !ai.isThinking) {
       
-      console.log('🤖 Запускаємо AI хід');
-      makeAIMoveForPlayer(aiSymbol);
-    }
-  }, [gameLogic.gameActive, gameLogic.currentPlayer, settings.gameMode, settings.playerSymbol, ai.isThinking, makeAIMoveForPlayer]);
+  //     console.log('🤖 Запускаємо AI хід');
+  //     makeAIMoveForPlayer(aiSymbol);
+  //   }
+  // }, [gameLogic.gameActive, gameLogic.currentPlayer, settings.gameMode, settings.playerSymbol, ai.isThinking, makeAIMoveForPlayer]);
+ 
+ 
+ 
+ 
+ 
+ 
+  // useEffect(() => {
+  //   // if (settings.gameMode !== 'ai' || !gameLogic.gameActive) return;
+  //   if (settings.gameMode !== 'ai' || !gameLogic.gameActive || aiMoveInProgressRef.current) return;
+    
+  //   const aiSymbol = settings.playerSymbol === PLAYER_SYMBOLS.X ? PLAYER_SYMBOLS.O : PLAYER_SYMBOLS.X;
+  //   console.log('🔍 useEffect AI перевірка:', {
+  //     currentPlayer: gameLogic.currentPlayer,
+  //     aiSymbol: aiSymbol,
+  //     playerSymbol: settings.playerSymbol,
+  //     shouldMakeMove: gameLogic.currentPlayer === aiSymbol,
+  //     whoShouldPlay: gameLogic.currentPlayer === settings.playerSymbol ? 'ГРАВЕЦЬ' : 'AI',
+  //     isThinking: ai.isThinking,
+  //     moveInProgress: aiMoveInProgressRef.current
+  //   });
+    
+  //   // Тільки критичні логи
+  //   // if (gameLogic.currentPlayer === aiSymbol && !ai.isThinking) {
+  //     if (gameLogic.currentPlayer === aiSymbol && !ai.isThinking) {
+  //       console.log('🤖 useEffect запускає AI хід для', aiSymbol);
+  //     const timeoutId = setTimeout(() => {
+  //       makeAIMoveForPlayer(aiSymbol);
+  //     }, 150); // зменшити затримку
+      
+  //     return () => clearTimeout(timeoutId);
+  //   } else if (gameLogic.currentPlayer === settings.playerSymbol) {
+  //     console.log('👤 Чекаємо хід гравця (', settings.playerSymbol, ')');
+  //   }
+  // }, [settings.gameMode, gameLogic.gameActive, gameLogic.currentPlayer, ai.isThinking]);//[settings.gameMode, gameLogic.gameActive, ai.isThinking]);
 
   return {
     // Стан гри

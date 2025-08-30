@@ -1,7 +1,8 @@
 // src/hooks/useMonadAuth.ts
 import { useEffect, useState } from 'react';
-import { usePrivy, CrossAppAccountWithMetadata } from '@privy-io/react-auth';
+import { usePrivy, CrossAppAccountWithMetadata, useCrossAppAccounts, useWallets } from '@privy-io/react-auth';
 import { MONAD_GAMES_ID_CROSS_APP_ID } from '../lib/privy/config';
+import { BrowserProvider } from 'ethers';
 
 interface MonadUser {
   address: string;
@@ -17,9 +18,13 @@ interface UseMonadAuthReturn {
   login: () => void;
   logout: () => void;
   fetchUsername: () => Promise<void>;
+  loginWithMonadGames: () => void;
+  getWalletProvider: () => Promise<BrowserProvider | null>;
 }
 
 export function useMonadAuth(): UseMonadAuthReturn {
+  const { loginWithCrossAppAccount } = useCrossAppAccounts();
+  const { wallets } = useWallets();
   const { authenticated, user, ready, logout: privyLogout, login: privyLogin } = usePrivy();
   const [monadUser, setMonadUser] = useState<MonadUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -38,6 +43,10 @@ export function useMonadAuth(): UseMonadAuthReturn {
     if (!crossAppAccount?.embeddedWallets?.length) return null;
 
     return crossAppAccount.embeddedWallets[0].address;
+  };
+
+  const loginWithMonadGames = () => {
+    loginWithCrossAppAccount({ appId: MONAD_GAMES_ID_CROSS_APP_ID });
   };
 
   // Отримання username через API
@@ -73,7 +82,87 @@ export function useMonadAuth(): UseMonadAuthReturn {
     }
   };
 
+  // const getWalletProvider = async (): Promise<BrowserProvider | null> => {
+  //   if (!monadUser?.address) {
+  //     console.log('❌ Немає адреси користувача');
+  //     return null;
+  //   }
+    
+  //   console.log('🔍 Пошук гаманця для адреси:', monadUser.address);
+  // console.log('🔍 Доступні гаманці:', wallets.map(w => ({ 
+  //   address: w.address, 
+  //   walletClientType: w.walletClientType 
+  // })));
+  
+  // // Спочатку шукаємо точний збіг
+  // let wallet = wallets.find(w => 
+  //   w.address?.toLowerCase() === monadUser.address.toLowerCase()
+  // );
+  
+  // // Якщо не знайшли, шукаємо cross-app гаманець
+  // if (!wallet) {
+  //   wallet = wallets.find(w => w.walletClientType === 'cross_app');
+  // }
+  
+  // // Якщо все ще не знайшли, беремо перший доступний
+  // if (!wallet && wallets.length > 0) {
+  //   wallet = wallets[0];
+  // }
+  
+  // if (!wallet) {
+  //   console.error('❌ Гаманець не знайдено');
+  //   return null;
+  // }
+  
+  // console.log('✅ Знайдено гаманець:', wallet.walletClientType, wallet.address);
+  
+  // try {
+  //   const ethereumProvider = await wallet.getEthereumProvider();
+  //   const browserProvider = new BrowserProvider(ethereumProvider);
+  //   console.log('✅ Provider створено успішно');
+  //   return browserProvider;
+  // } catch (error) {
+  //   console.error('❌ Помилка створення provider:', error);
+  //   return null;
+  // }
+  // };
+
+
+
   // Ефект для обробки змін авторизації
+  
+  
+  const getWalletProvider = async (): Promise<BrowserProvider | null> => {
+    if (!authenticated || !ready || !user) {
+      console.error('❌ Користувач не авторизований');
+      return null;
+    }
+  
+    const monadAddress = getMonadWalletAddress();
+    if (!monadAddress) {
+      console.error('❌ Немає адреси Monad Games ID');
+      return null;
+    }
+  
+    // Шукаємо wallet що відповідає адресі Monad Games ID
+    const matchingWallet = wallets.find(w => 
+      w.address?.toLowerCase() === monadAddress.toLowerCase()
+    );
+  
+    if (!matchingWallet) {
+      return null;
+    }
+  
+    try {
+      const ethereumProvider = await matchingWallet.getEthereumProvider();
+      const browserProvider = new BrowserProvider(ethereumProvider);
+      return browserProvider;
+    } catch (error) {
+      console.error('❌ Помилка створення provider:', error);
+      return null;
+    }
+  };
+  
   useEffect(() => {
     const handleAuthChange = async () => {
       setIsLoading(true);
@@ -121,5 +210,7 @@ export function useMonadAuth(): UseMonadAuthReturn {
     login: handleLogin,
     logout: handleLogout,
     fetchUsername,
+    loginWithMonadGames,
+    getWalletProvider
   };
 }

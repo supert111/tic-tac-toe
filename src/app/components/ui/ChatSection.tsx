@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useTranslation } from '../../../lib/i18n';
 
 export default function ChatSection() {
   const [messages, setMessages] = useState([
@@ -31,19 +32,20 @@ export default function ChatSection() {
       handleSendMessage();
     }
   };
+  const { t } = useTranslation();
 
   return (
     <div className="h-full flex flex-col">
       {/* Заголовок чату */}
-      <div className="bg-white/10 rounded-xl p-3 mb-4">
+      {/* <div className="bg-white/10 rounded-xl p-3 mb-4">
         <h3 className="font-semibold text-center">💬 Загальний чат</h3>
         <div className="text-xs text-center text-white/60 mt-1">
           Онлайн: 12 гравців
         </div>
-      </div>
+      </div> */}
 
       {/* Повідомлення */}
-      <div className="flex-1 bg-white/10 rounded-xl p-3 mb-4 overflow-y-auto max-h-64">
+      {/* <div className="flex-1 bg-white/10 rounded-xl p-3 mb-4 overflow-y-auto max-h-64">
         <div className="space-y-3">
           {messages.map((msg) => (
             <div key={msg.id} className="flex gap-2">
@@ -60,23 +62,34 @@ export default function ChatSection() {
             </div>
           ))}
         </div>
+      </div> */}
+      <div className="flex-1 bg-white/10 rounded-xl p-3 mb-4 overflow-y-auto max-h-64">
+        <div className="flex flex-col items-center justify-center h-full min-h-[150px]">
+          <div className="text-6xl mb-4">⏳</div>
+          <div className="text-xl font-semibold mb-2">SOON</div>
+          <div className="text-sm text-white/60 text-center">
+            {t.gameStatus.chatMessage}
+          </div>
+        </div>
       </div>
 
       {/* Поле вводу */}
       <div className="bg-white/10 rounded-xl p-3">
         <div className="flex gap-2">
           <input
+            disabled={true}
             type="text"
             value={newMessage}
             onChange={(e) => setNewMessage(e.target.value)}
             onKeyPress={handleKeyPress}
-            placeholder="Напишіть повідомлення..."
+            placeholder={t.gameStatus.writeMessage}
             className="flex-1 px-3 py-2 bg-white/20 border border-white/30 rounded-lg text-white placeholder-white/50 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
             maxLength={200}
           />
           <button
             onClick={handleSendMessage}
-            disabled={!newMessage.trim()}
+            // disabled={!newMessage.trim()}
+            disabled={true}
             className="px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 disabled:from-gray-500 disabled:to-gray-600 text-white rounded-lg transition-all duration-200 text-sm font-medium disabled:cursor-not-allowed"
           >
             📤

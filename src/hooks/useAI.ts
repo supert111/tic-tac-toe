@@ -2340,7 +2340,6 @@ export function useAI({
       const testBoard = makeMove(board, move, playerSymbol);
       const result = checkWinner(testBoard, winningConditions);
       if (result.winner === playerSymbol) {
-        console.log(`🛡️ Критичне блокування в позиції ${move} ${restrictedCells && restrictedCells.includes(move) ? '(ігнорує обмеження!)' : ''}`);
         return move; // Критичне блокування - ігноруємо обмеження
       }
     }
@@ -2424,30 +2423,25 @@ export function useAI({
     firstPlayer?: Player
   ): Promise<number> => {
     const availableMoves = getAvailableMoves(board, restrictedCells);
-    console.log('🎯 getBestMove. Доступні ходи:', availableMoves, 'Обмеження:', restrictedCells);
     
     if (availableMoves.length === 0) return -1;
 
     const shouldUseRandom = Math.random() * 100 < config.randomness;
     if (shouldUseRandom) {
       const randomMove = getRandomMove(board, restrictedCells);
-      console.log('🎲 Випадковий хід:', randomMove);
       return randomMove;
     }
 
     switch (config.difficulty) {
       case 'easy':
         const easyMove = getRandomMove(board, restrictedCells);
-        console.log('😊 Легкий хід:', easyMove);
         return easyMove;
         
       case 'medium':
         const mediumMove = getStrategicMove(board, boardSize, restrictedCells);
-        console.log('🧠 Середній хід:', mediumMove);
         return mediumMove;
         
       case 'hard':
-        console.log('🤖 Використовуємо Web Worker для розрахунку...');
         
         return new Promise((resolve) => {
           // Створюємо worker якщо не існує
@@ -2466,7 +2460,6 @@ export function useAI({
 
           // Таймаут для worker (максимум 10 секунд)
           const workerTimeout = setTimeout(() => {
-            console.warn('⏱️ Worker timeout, використовуємо fallback');
             worker.terminate();
             workerRef.current = null;
             resolve(getStrategicMove(board, boardSize, restrictedCells));
@@ -2474,23 +2467,19 @@ export function useAI({
 
           worker.onmessage = (e) => {
             clearTimeout(workerTimeout);
-            const { success, move, error, calculationTime, evaluation, fallbackMove } = e.data;
+            const { success, move, fallbackMove } = e.data;
             
             if (success && move !== -1 && board[move] === '') {
-              console.log(`🎯 Worker повернув хід: ${move} (${calculationTime}мс, eval: ${evaluation})`);
               resolve(move);
             } else if (fallbackMove !== -1 && board[fallbackMove] === '') {
-              console.warn('🔄 Використовуємо fallback хід з Worker:', fallbackMove);
               resolve(fallbackMove);
             } else {
-              console.error('❌ Worker помилка:', error);
               resolve(getStrategicMove(board, boardSize, restrictedCells));
             }
           };
 
-          worker.onerror = (error) => {
-            clearTimeout(workerTimeout);
-            console.error('❌ Worker критична помилка:', error);
+          worker.onerror = () => {
+            clearTimeout(workerTimeout);    
             worker.terminate();
             workerRef.current = null;
             resolve(getStrategicMove(board, boardSize, restrictedCells));
@@ -2508,7 +2497,6 @@ export function useAI({
             firstPlayer: firstPlayer || 'X'// 🔥 КРИТИЧНО ВАЖЛИВО!
           };
 
-          console.log('📤 Відправляємо до Worker:', workerData);
           worker.postMessage(workerData);
         });
         
@@ -2545,18 +2533,11 @@ export function useAI({
     firstPlayer?: Player // 🔥 ДОДАЛИ ПАРАМЕТР
   ): Promise<number> => {
     if (isThinking) {
-      console.log('🤔 AI вже думає, повертаємо -1');
       return -1;
     }
 
     setIsThinking(true);
     cancelledRef.current = false;
-
-    console.log('⏳ AI почав думати...', { 
-      restrictedCells: restrictedCells?.length || 0,
-      firstPlayer,
-      difficulty: config.difficulty 
-    });
 
     try {
       // Затримка для реалістичності
@@ -2566,7 +2547,6 @@ export function useAI({
       
       // Перевіряємо чи не скасовано
       if (cancelledRef.current) {
-        console.log('🚫 AI хід скасовано');
         setIsThinking(false);
         return -1;
       }
@@ -2575,14 +2555,12 @@ export function useAI({
       const move = await getBestMove(board, boardSize, restrictedCells, firstPlayer);
       
       if (cancelledRef.current) {
-        console.log('🚫 AI хід скасовано після розрахунку');
         setIsThinking(false);
         return -1;
       }
 
       // Валідація ходу
       if (move === -1 || board[move] !== '') {
-        console.error('🔥 Невалідний хід від AI:', move, 'Board:', board);
         setIsThinking(false);
         return -1;
       }
@@ -2595,7 +2573,6 @@ export function useAI({
       setLastMove(move);
       setIsThinking(false);
       
-      console.log(`✅ AI зробив хід: ${move} (оцінка: ${evaluation})`);
       onMoveCalculated?.(move, evaluation);
       return move;
       

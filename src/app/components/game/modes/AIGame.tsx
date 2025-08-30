@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, useCallback } from 'react';
-import GameCell from '../GameCell';
-import GameModal from '../GameModal';
+import GameCell from '../NotUseGameCell';
+import GameModal from '../NotUseGameModal';
 
 type Player = 'X' | 'O';
 type Difficulty = 'easy' | 'medium' | 'hard';

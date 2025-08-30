@@ -4164,6 +4164,1383 @@
 
 
 
+// // public/ai-worker.js
+// // Web Worker для AI обчислень - МАКСИМАЛЬНО ПОКРАЩЕНА ВЕРСІЯ 4.0
+// // 🔥 З РІЗНОМАНІТНИМИ СТИЛЯМИ ГРИ
+
+// // 🔥 ПОКРАЩЕНА КОНФІГУРАЦІЯ СКЛАДНОСТІ AI
+// const AI_DIFFICULTY_CONFIG = {
+//   easy: {
+//     randomnessPercent: 35,          
+//     useMinimaxDepth: 3,             
+//     useForcedWinSearch: false,      
+//     useForkBlocking: true,          
+//     usePositionalPlay: false,       
+//     useRestrictionHandling: false,  // НЕ враховувати обмеження 4×4
+//   },
+//   medium: {
+//     randomnessPercent: 5,           
+//     useMinimaxDepth: {
+//       boardSize3: 8,                
+//       boardSize4: 6                 
+//     },
+//     useForcedWinSearch: true,
+//     forcedWinDepth: 5,              
+//     useForkBlocking: true,
+//     useAdvancedBlocking: true,      
+//     usePositionalPlay: true,
+//     useRestrictionHandling: true,   // Враховувати обмеження
+//     useMultipleThreatDetection: true,
+//   },
+//   hard: {
+//     randomnessPercent: 0,           
+//     useMinimaxDepth: {
+//       boardSize3: 12,               
+//       boardSize4: {
+//         earlyGame: 10,    
+//         midGame: 16,      
+//         endGame: 20       
+//       }
+//     },
+//     useForcedWinSearch: true,
+//     forcedWinDepth: 12,              
+//     useForkBlocking: true,
+//     useAdvancedBlocking: true,
+//     usePositionalOptimization: true, 
+//     useThreatAnalysis: true,        
+//     useEndgameOptimization: true,   
+//     useRestrictionHandling: true,   // ОБОВ'ЯЗКОВО враховувати
+//     useSmartRestrictionOverride: true, // Розумне ігнорування обмежень
+//     useOpeningBook: true,           // 🔥 НОВА ОПЦІЯ
+//     useMultipleThreatDetection: true, // 🔥 НОВА ОПЦІЯ
+//     usePlayStyleVariation: true,    // 🔥 НОВИЙ ПАРАМЕТР
+//     playStyleChangeChance: 0.15,    // 15% шансу змінити стиль
+//     moveVariationTolerance: 0.1,    // Толерантність до субоптимальних ходів
+//     useAdaptiveDepth: true          // Адаптивна глибина
+//   }
+// };
+
+// // 🔥 СТИЛІ ГРИ AI
+// const AI_PLAY_STYLES = {
+//   aggressive: {
+//     positionWeight: 1.2,    // Більше фокусу на атаці
+//     defensiveWeight: 0.8,   // Менше захисту
+//     riskTolerance: 0.3,     // Ризикованіші ходи
+//     name: 'Агресивний'
+//   },
+//   defensive: {
+//     positionWeight: 0.8,    // Менше атаки
+//     defensiveWeight: 1.3,   // Більше захисту
+//     riskTolerance: 0.1,     // Обережніші ходи
+//     name: 'Оборонний'
+//   },
+//   balanced: {
+//     positionWeight: 1.0,    
+//     defensiveWeight: 1.0,   
+//     riskTolerance: 0.2,
+//     name: 'Збалансований'
+//   },
+//   tactical: {
+//     positionWeight: 1.1,    
+//     defensiveWeight: 1.1,   
+//     riskTolerance: 0.25,
+//     name: 'Тактичний'
+//   }
+// };
+
+// // 🔥 ПОКРАЩЕНИЙ КЕШ
+// const positionCache = new Map();
+// const restrictionCache = new Map();
+// const MAX_CACHE_SIZE = 15000;
+
+// // Змінна для поточного стилю (зберігається між ходами)
+// let currentGameStyle = 'balanced';
+// let styleChangeCounter = 0;
+
+// function getAIConfig(difficulty) {
+//   return AI_DIFFICULTY_CONFIG[difficulty] || AI_DIFFICULTY_CONFIG.medium;
+// }
+
+// // 🔥 ФУНКЦІЯ ВИБОРУ СТИЛЮ ГРИ
+// function getRandomPlayStyle() {
+//   const styles = ['aggressive', 'defensive', 'balanced', 'tactical'];
+//   return styles[Math.floor(Math.random() * styles.length)];
+// }
+
+// // 🔥 РОЗШИРЕНА ДЕБЮТНА КНИГА
+// function getOpeningMove(board, boardSize) {
+//   if (boardSize !== 4) return -1;
+  
+//   const moveCount = board.filter(cell => cell !== '').length;
+  
+//   // Перший хід AI - РОЗШИРЮЄМО ВАРІАНТИ
+//   if (moveCount === 1) {
+//     const playerMove = board.findIndex(cell => cell !== '');
+    
+//     // Якщо гравець взяв центр - більше варіантів кутів
+//     if ([5, 6, 9, 10].includes(playerMove)) {
+//       const cornerStrategies = [
+//         [0, 3],     // Верхні кути
+//         [12, 15],   // Нижні кути  
+//         [0, 15],    // Діагональ
+//         [3, 12]     // Анти-діагональ
+//       ];
+//       const strategy = cornerStrategies[Math.floor(Math.random() * cornerStrategies.length)];
+//       return strategy[Math.floor(Math.random() * strategy.length)];
+//     }
+    
+//     // Якщо гравець взяв кут - варіанти центру
+//     if ([0, 3, 12, 15].includes(playerMove)) {
+//       const centerStrategies = [
+//         [5, 6],     // Верхній центр
+//         [9, 10],    // Нижній центр
+//         [5, 10],    // Діагональний центр
+//         [6, 9]      // Анти-діагональний центр
+//       ];
+//       const strategy = centerStrategies[Math.floor(Math.random() * centerStrategies.length)];
+//       return strategy[Math.floor(Math.random() * strategy.length)];
+//     }
+    
+//     // Для інших позицій - різні стратегії
+//     const fallbackStrategies = [
+//       [5, 6, 9, 10], // Центральна стратегія
+//       [0, 3, 12, 15], // Кутова стратегія  
+//       [1, 2, 4, 7]    // Крайова стратегія
+//     ];
+//     const chosenStrategy = fallbackStrategies[Math.floor(Math.random() * fallbackStrategies.length)];
+//     const available = chosenStrategy.filter(pos => board[pos] === '');
+//     return available[Math.floor(Math.random() * available.length)] || 5;
+//   }
+  
+//   // Другий хід AI (після 2 ходів загалом)
+//   if (moveCount === 2) {
+//     const centers = [5, 6, 9, 10].filter(pos => board[pos] === '');
+//     if (centers.length > 0) {
+//       return centers[Math.floor(Math.random() * centers.length)];
+//     }
+//   }
+  
+//   return -1;
+// }
+
+// // 🔥 ВИБІР СЕРЕД ОДНАКОВИХ ХОДІВ З ВАРІАЦІЄЮ
+// function selectBestMoveWithVariety(scoredMoves, playStyle, config) {
+//   if (scoredMoves.length === 0) return -1;
+  
+//   // Знаходимо найкращий результат
+//   const bestScore = scoredMoves[0].score;
+  
+//   // Толерантність до "майже найкращих" ходів
+//   const tolerance = Math.abs(bestScore) * (config.moveVariationTolerance || 0.1);
+  
+//   const goodMoves = scoredMoves.filter(move => 
+//     Math.abs(move.score - bestScore) <= tolerance
+//   );
+  
+//   if (goodMoves.length <= 1) {
+//     return scoredMoves[0].move;
+//   }
+  
+//   // Для агресивного стилю - більше ваги центральним позиціям
+//   if (playStyle === 'aggressive') {
+//     const centerPositions = [5, 6, 9, 10];
+//     const aggressiveMoves = goodMoves.filter(move => 
+//       centerPositions.includes(move.move)
+//     );
+//     if (aggressiveMoves.length > 0) {
+//       console.log(`⚔️ Агресивний вибір серед центральних позицій`);
+//       return aggressiveMoves[Math.floor(Math.random() * aggressiveMoves.length)].move;
+//     }
+//   }
+  
+//   // Для оборонного стилю - кути та краї
+//   if (playStyle === 'defensive') {
+//     const defensivePositions = [0, 3, 12, 15, 1, 2, 4, 7, 8, 11, 13, 14];
+//     const defensiveMoves = goodMoves.filter(move => 
+//       defensivePositions.includes(move.move)
+//     );
+//     if (defensiveMoves.length > 0) {
+//       console.log(`🛡️ Оборонний вибір`);
+//       return defensiveMoves[Math.floor(Math.random() * defensiveMoves.length)].move;
+//     }
+//   }
+  
+//   // Випадковий вибір серед хороших ходів
+//   console.log(`🎲 Випадковий вибір серед ${goodMoves.length} хороших ходів`);
+//   return goodMoves[Math.floor(Math.random() * goodMoves.length)].move;
+// }
+
+// // 🔥 ДОДАЙТЕ ЦЮ ФУНКЦІЮ
+// function detectMultipleThreats(board, boardSize, playerSymbol, winningConditions) {
+//   const threats = [];
+  
+//   // Знайти всі лінії з 2 символами противника + 1 пуста
+//   for (const condition of winningConditions) {
+//     let playerCount = 0;
+//     let emptyCount = 0;
+//     let emptyPos = -1;
+
+//     for (const index of condition) {
+//       if (board[index] === playerSymbol) playerCount++;
+//       else if (board[index] === '') {
+//         emptyCount++;
+//         emptyPos = index;
+//       }
+//     }
+
+//     if (playerCount === 2 && emptyCount === 1) {
+//       threats.push({
+//         position: emptyPos,
+//         line: condition,
+//         priority: 1000 + (condition.includes(5) || condition.includes(6) || 
+//                          condition.includes(9) || condition.includes(10) ? 100 : 0)
+//       });
+//     }
+//   }
+  
+//   // Сортуємо за пріоритетом
+//   threats.sort((a, b) => b.priority - a.priority);
+//   // 🔥 Фільтруємо тільки найкритичніші загрози
+//   if (threats.length > 2) {
+//     const criticalThreats = threats.filter(t => t.priority >= threats[0].priority - 50);
+//     return criticalThreats.length > 0 ? criticalThreats : threats.slice(0, 2);
+//   }
+  
+//   return threats;
+// }
+
+// function createCacheKey(board, depth, isMaximizing, aiSymbol) {
+//   return `${board.join('')}-${depth}-${isMaximizing}-${aiSymbol}`;
+// }
+
+// // Допоміжні функції
+// function generateWinningConditions(size) {
+//   const conditions = [];
+  
+//   for (let row = 0; row < size; row++) {
+//     for (let col = 0; col <= size - 3; col++) {
+//       conditions.push([
+//         row * size + col,
+//         row * size + col + 1,
+//         row * size + col + 2
+//       ]);
+//     }
+//   }
+  
+//   for (let col = 0; col < size; col++) {
+//     for (let row = 0; row <= size - 3; row++) {
+//       conditions.push([
+//         row * size + col,
+//         (row + 1) * size + col,
+//         (row + 2) * size + col
+//       ]);
+//     }
+//   }
+  
+//   for (let row = 0; row <= size - 3; row++) {
+//     for (let col = 0; col <= size - 3; col++) {
+//       conditions.push([
+//         row * size + col,
+//         (row + 1) * size + col + 1,
+//         (row + 2) * size + col + 2
+//       ]);
+//     }
+//   }
+  
+//   for (let row = 0; row <= size - 3; row++) {
+//     for (let col = 2; col < size; col++) {
+//       conditions.push([
+//         row * size + col,
+//         (row + 1) * size + col - 1,
+//         (row + 2) * size + col - 2
+//       ]);
+//     }
+//   }
+  
+//   return conditions;
+// }
+
+// function checkWinner(board, winningConditions) {
+//   for (const [a, b, c] of winningConditions) {
+//     if (board[a] && board[a] === board[b] && board[a] === board[c]) {
+//       return {
+//         winner: board[a],
+//         winningLine: [a, b, c]
+//       };
+//     }
+//   }
+  
+//   return { winner: null, winningLine: [] };
+// }
+
+// function isBoardFull(board) {
+//   return !board.includes('');
+// }
+
+// function isGameFinished(board, winningConditions) {
+//   const { winner, winningLine } = checkWinner(board, winningConditions);
+  
+//   if (winner) {
+//     return { finished: true, winner, isDraw: false, winningLine };
+//   }
+  
+//   if (isBoardFull(board)) {
+//     return { finished: true, winner: null, isDraw: true, winningLine: [] };
+//   }
+  
+//   return { finished: false, winner: null, isDraw: false, winningLine: [] };
+// }
+
+// function getOppositePlayer(player) {
+//   return player === 'X' ? 'O' : 'X';
+// }
+
+// function makeMove(board, index, player) {
+//   if (board[index] !== '') {
+//     return board;
+//   }
+  
+//   const newBoard = [...board];
+//   newBoard[index] = player;
+//   return newBoard;
+// }
+
+// // 🔥 ВИПРАВЛЕНА ФУНКЦІЯ ОБМЕЖЕНЬ ДЛЯ 4×4
+// function getRestrictedCells(board, boardSize, currentPlayer, firstPlayer) {
+//   if (boardSize !== 4) return [];
+  
+//   // Кешування обмежень
+//   const cacheKey = `${board.join('')}-${currentPlayer}-${firstPlayer}`;
+//   if (restrictionCache.has(cacheKey)) {
+//     return restrictionCache.get(cacheKey);
+//   }
+  
+//   const secondPlayer = getOppositePlayer(firstPlayer);
+//   const firstPlayerMoves = board.filter(cell => cell === firstPlayer).length;
+//   const secondPlayerMoves = board.filter(cell => cell === secondPlayer).length;
+  
+//   const isSecondMoveForFirst = currentPlayer === firstPlayer && firstPlayerMoves === 1;
+//   const isSecondMoveForSecond = currentPlayer === secondPlayer && secondPlayerMoves === 1;
+  
+//   if (!isSecondMoveForFirst && !isSecondMoveForSecond) {
+//     restrictionCache.set(cacheKey, []);
+//     return [];
+//   }
+  
+//   // Знайти позицію першого ходу поточного гравця
+//   let firstMovePosition = -1;
+//   for (let i = 0; i < board.length; i++) {
+//     if (board[i] === currentPlayer) {
+//       firstMovePosition = i;
+//       break;
+//     }
+//   }
+  
+//   if (firstMovePosition === -1) {
+//     restrictionCache.set(cacheKey, []);
+//     return [];
+//   }
+  
+//   const row = Math.floor(firstMovePosition / 4);
+//   const col = firstMovePosition % 4;
+//   const restrictedCells = [];
+  
+//   const directions = [
+//     [-1, -1], [-1, 0], [-1, 1],
+//     [0, -1],           [0, 1],
+//     [1, -1],  [1, 0],  [1, 1]
+//   ];
+  
+//   for (const [deltaRow, deltaCol] of directions) {
+//     const adjacentRow = row + deltaRow;
+//     const adjacentCol = col + deltaCol;
+    
+//     if (adjacentRow >= 0 && adjacentRow < 4 && 
+//         adjacentCol >= 0 && adjacentCol < 4) {
+      
+//       const adjacentIndex = adjacentRow * 4 + adjacentCol;
+      
+//       if (board[adjacentIndex] !== '') continue;
+      
+//       const nextRow = adjacentRow + deltaRow;
+//       const nextCol = adjacentCol + deltaCol;
+      
+//       if (nextRow >= 0 && nextRow < 4 && 
+//           nextCol >= 0 && nextCol < 4) {
+        
+//         const nextIndex = nextRow * 4 + nextCol;
+        
+//         if (board[nextIndex] === '') {
+//           restrictedCells.push(adjacentIndex);
+//         }
+//       }
+//     }
+//   }
+  
+//   // Кешуємо результат
+//   if (restrictionCache.size < MAX_CACHE_SIZE) {
+//     restrictionCache.set(cacheKey, restrictedCells);
+//   }
+  
+//   return restrictedCells;
+// }
+
+// // 🔥 НОВА ФУНКЦІЯ: Розумна перевірка чи можна ігнорувати обмеження
+// function canOverrideRestriction(board, move, playerSymbol, winningConditions) {
+//   // Завжди дозволяємо блокувати виграш
+//   const testBoard = makeMove([...board], move, playerSymbol);
+//   const result = checkWinner(testBoard, winningConditions);
+//   if (result.winner === playerSymbol) {
+//     return true; // Це блокування виграшу - можна ігнорувати обмеження
+//   }
+  
+//   // Перевіряємо чи це створює виграшну загрозу
+//   let threatCount = 0;
+//   for (const condition of winningConditions) {
+//     if (condition.includes(move)) {
+//       let playerCount = 0;
+//       let emptyCount = 0;
+      
+//       for (const index of condition) {
+//         if (testBoard[index] === playerSymbol) playerCount++;
+//         else if (testBoard[index] === '') emptyCount++;
+//       }
+      
+//       if (playerCount === 2 && emptyCount === 1) {
+//         threatCount++;
+//       }
+//     }
+//   }
+  
+//   return threatCount >= 2; // Вилка - можна ігнорувати обмеження
+// }
+
+// // 🔥 ПОКРАЩЕНА ОЦІНЮВАЛЬНА ФУНКЦІЯ З СТИЛЯМИ
+// function evaluatePosition(board, boardSize, winningConditions, aiSymbol, playerSymbol, config, playStyle = 'balanced') {
+//   const result = isGameFinished(board, winningConditions);
+//   const moveCount = board.filter(cell => cell !== '').length;
+
+//   if (result.winner === aiSymbol) return 15000 - moveCount;
+//   if (result.winner === playerSymbol) return -15000 + moveCount;
+//   if (result.isDraw) return 0;
+
+//   let score = 0;
+
+//   // 🔥 КРИТИЧНІ БОНУСИ ДЛЯ РАННЬОЇ ГРИ (перші 5 ходів)
+//   if (moveCount <= 5 && boardSize === 4) {
+//     console.log(`🎯 Рання гра: хід ${moveCount}, стиль: ${AI_PLAY_STYLES[playStyle]?.name || playStyle}`);
+    
+//     // СУПЕР контроль центру - критично важливий!
+//     const superCenters = [5, 6, 9, 10];
+//     let centerControl = 0;
+    
+//     for (const pos of superCenters) {
+//       if (board[pos] === aiSymbol) {
+//         centerControl += 350; // 🔥 ЗБІЛЬШЕНО з 200!
+//         console.log(`💎 AI контролює центр ${pos}: +350`);
+//       } else if (board[pos] === playerSymbol) {
+//         centerControl -= 280; // Штраф за втрату центру
+//         console.log(`⚠️ Гравець контролює центр ${pos}: -280`);
+//       }
+//     }
+    
+//     score += centerControl;
+    
+//     // 🔥 МЕГА-БОНУС за контроль довгих діагоналей в ранній грі
+//     const longDiagonals = [
+//       [0, 5, 10, 15],  // Головна діагональ
+//       [3, 6, 9, 12]    // Анти-діагональ
+//     ];
+    
+//     for (const diagonal of longDiagonals) {
+//       let aiOnDiag = 0;
+//       let playerOnDiag = 0;
+//       let emptyOnDiag = 0;
+      
+//       for (const pos of diagonal) {
+//         if (board[pos] === aiSymbol) aiOnDiag++;
+//         else if (board[pos] === playerSymbol) playerOnDiag++;
+//         else emptyOnDiag++;
+//       }
+      
+//       // Чиста діагональ AI = золото!
+//       if (aiOnDiag > 0 && playerOnDiag === 0) {
+//         const diagonalBonus = aiOnDiag * aiOnDiag * 180; // Квадратичний бонус
+//         score += diagonalBonus;
+//         console.log(`🏆 AI контролює діагональ ${diagonal}: +${diagonalBonus}`);
+//       }
+      
+//       // Гравець контролює діагональ = небезпека
+//       if (playerOnDiag > 0 && aiOnDiag === 0) {
+//         const diagonalPenalty = playerOnDiag * playerOnDiag * 150;
+//         score -= diagonalPenalty;
+//         console.log(`🚨 Гравець контролює діагональ ${diagonal}: -${diagonalPenalty}`);
+//       }
+      
+//       // 🔥 НОВИЙ БОНУС: потенціал діагоналі
+//       if (aiOnDiag === 1 && playerOnDiag === 0 && emptyOnDiag === 3) {
+//         score += 120; // Бонус за початок контролю діагоналі
+//         console.log(`⭐ Потенціал діагоналі: +120`);
+//       }
+//     }
+    
+//     // 🔥 БОНУС за контроль кутів у ранній грі
+//     const corners = [0, 3, 12, 15];
+//     let cornerControl = 0;
+    
+//     for (const corner of corners) {
+//       if (board[corner] === aiSymbol) cornerControl += 90;
+//       else if (board[corner] === playerSymbol) cornerControl -= 70;
+//     }
+    
+//     score += cornerControl;
+    
+//     // 🔥 ШТРАФ за розкидані ходи в ранній грі
+//     let hasStrategy = false;
+    
+//     // Перевіряємо чи є AI на діагоналях
+//     for (const diagonal of longDiagonals) {
+//       for (const pos of diagonal) {
+//         if (board[pos] === aiSymbol) {
+//           hasStrategy = true;
+//           break;
+//         }
+//       }
+//       if (hasStrategy) break;
+//     }
+    
+//     // Або чи контролює центр
+//     if (centerControl >= 100) {
+//       hasStrategy = true;
+//     }
+    
+//     if (!hasStrategy) {
+//       score -= 200; // Штраф за відсутність стратегії
+//       console.log(`📉 Штраф за відсутність стратегії: -200`);
+//     }
+//   }
+
+//   // 🔥 ПОКРАЩЕНИЙ АНАЛІЗ ЛІНІЙ з експоненціальними бонусами
+//   for (const condition of winningConditions) {
+//     let aiCount = 0;
+//     let playerCount = 0;
+//     let emptyCount = 0;
+
+//     for (const index of condition) {
+//       const cell = board[index];
+//       if (cell === aiSymbol) aiCount++;
+//       else if (cell === playerSymbol) playerCount++;
+//       else emptyCount++;
+//     }
+
+//     if (playerCount === 0) {
+//       if (aiCount === 2 && emptyCount === 1) {
+//         score += 2500; // Майже виграш
+//       } else if (aiCount === 2) {
+//         score += 350;
+//       } else if (aiCount === 1 && emptyCount === 2) {
+//         score += 80;
+//       } else if (aiCount === 1) {
+//         score += 35;
+//       }
+//     } else if (aiCount === 0) {
+//       if (playerCount === 2 && emptyCount === 1) {
+//         score -= 2300; // Критично заблокувати
+//       } else if (playerCount === 2) {
+//         score -= 300;
+//       } else if (playerCount === 1 && emptyCount === 2) {
+//         score -= 60;
+//       } else if (playerCount === 1) {
+//         score -= 25;
+//       }
+//     }
+//   }
+
+//   // 🔥 ЗАСТОСУВАННЯ СТИЛЮ ГРИ
+//   if (playStyle && AI_PLAY_STYLES[playStyle]) {
+//     const styleModifier = AI_PLAY_STYLES[playStyle];
+    
+//     // Модифікуємо позиційні бонуси залежно від стилю
+//     if (config.usePositionalPlay || config.usePositionalOptimization) {
+//       if (boardSize === 4) {
+//         // Градація позицій від центру
+//         const positionValues = {
+//           5: 80, 6: 80, 9: 80, 10: 80,     // Супер-центр
+//           1: 40, 2: 40, 4: 40, 7: 40,      // Центральні
+//           8: 40, 11: 40, 13: 40, 14: 40,
+//           0: 25, 3: 25, 12: 25, 15: 25     // Кути
+//         };
+        
+//         for (const [pos, value] of Object.entries(positionValues)) {
+//           const position = parseInt(pos);
+//           if (board[position] === aiSymbol) {
+//             score += Math.floor(value * styleModifier.positionWeight);
+//           } else if (board[position] === playerSymbol) {
+//             score -= Math.floor(value * 0.7 * styleModifier.defensiveWeight);
+//           }
+//         }
+
+//         // Контроль довгих діагоналей
+//         const longDiagonals = [
+//           [0, 5, 10, 15],
+//           [3, 6, 9, 12]
+//         ];
+        
+//         for (const diagonal of longDiagonals) {
+//           let aiControl = 0;
+//           let playerControl = 0;
+          
+//           for (const pos of diagonal) {
+//             if (board[pos] === aiSymbol) aiControl++;
+//             else if (board[pos] === playerSymbol) playerControl++;
+//           }
+          
+//           if (playerControl === 0 && aiControl > 0) {
+//             score += Math.floor(aiControl * aiControl * 20 * styleModifier.positionWeight);
+//           }
+//           if (aiControl === 0 && playerControl > 0) {
+//             score -= Math.floor(playerControl * playerControl * 15 * styleModifier.defensiveWeight);
+//           }
+//         }
+//       } else if (boardSize === 3) {
+//         // Для 3×3 центр критично важливий
+//         if (board[4] === aiSymbol) score += Math.floor(120 * styleModifier.positionWeight);
+//         else if (board[4] === playerSymbol) score -= Math.floor(100 * styleModifier.defensiveWeight);
+        
+//         const corners = [0, 2, 6, 8];
+//         for (const corner of corners) {
+//           if (board[corner] === aiSymbol) score += Math.floor(45 * styleModifier.positionWeight);
+//           else if (board[corner] === playerSymbol) score -= Math.floor(35 * styleModifier.defensiveWeight);
+//         }
+//       }
+//     }
+//   }
+
+//   // 🔥 ПОКРАЩЕНИЙ АНАЛІЗ ЗАГРОЗ
+//   if (config.useThreatAnalysis) {
+//     const playerForks = countForks(board, playerSymbol, winningConditions);
+//     const aiForks = countForks(board, aiSymbol, winningConditions);
+    
+//     //const style = AI_PLAY_STYLES[playStyle] || AI_PLAY_STYLES.balanced;
+    
+//     const currentStyle = AI_PLAY_STYLES[playStyle] || AI_PLAY_STYLES.balanced;
+//     score -= Math.floor(playerForks * 250 * currentStyle.defensiveWeight);
+//     score += Math.floor(aiForks * 300 * currentStyle.positionWeight);
+    
+//     // Бонус за контроль центральних ліній
+//     const centralLines = getCentralLines(boardSize);
+//     let controlledCentralLines = 0;
+    
+//     for (const line of centralLines) {
+//       let aiInLine = 0;
+//       let playerInLine = 0;
+      
+//       for (const index of line) {
+//         if (board[index] === aiSymbol) aiInLine++;
+//         else if (board[index] === playerSymbol) playerInLine++;
+//       }
+      
+//       if (aiInLine > 0 && playerInLine === 0) {
+//         controlledCentralLines++;
+//       }
+//     }
+    
+//     score += controlledCentralLines * 15;
+//   }
+
+//   return score;
+// }
+
+// // 🔥 НОВА ФУНКЦІЯ: Отримати центральні лінії
+// function getCentralLines(boardSize) {
+//   if (boardSize === 4) {
+//     return [
+//       [5, 6, 9],      // Центральний горизонтальний
+//       [1, 5, 9],      // Центральний вертикальний  
+//       [5, 10, 15],    // Центральна діагональ
+//     ];
+//   } else {
+//     return [
+//       [3, 4, 5],      // Центральний рядок
+//       [1, 4, 7],      // Центральний стовпець
+//       [0, 4, 8],      // Головна діагональ
+//       [2, 4, 6],      // Антидіагональ
+//     ];
+//   }
+// }
+
+// function countForks(board, symbol, winningConditions) {
+//   let forkCount = 0;
+//   const availableMoves = board
+//     .map((cell, index) => cell === '' ? index : -1)
+//     .filter(index => index !== -1);
+
+//   for (const move of availableMoves) {
+//     const testBoard = makeMove([...board], move, symbol);
+//     let winningOpportunities = 0;
+
+//     for (const condition of winningConditions) {
+//       let symbolCount = 0;
+//       let emptyCount = 0;
+
+//       for (const index of condition) {
+//         if (testBoard[index] === symbol) symbolCount++;
+//         else if (testBoard[index] === '') emptyCount++;
+//       }
+
+//       if (symbolCount === 2 && emptyCount === 1) {
+//         winningOpportunities++;
+//       }
+//     }
+
+//     if (winningOpportunities >= 2) {
+//       forkCount++;
+//     }
+//   }
+
+//   return forkCount;
+// }
+
+// // 🔥 ПОКРАЩЕНИЙ ПОШУК ФОРСОВАНОГО ВИГРАШУ
+// function findForcedWin(board, boardSize, symbol, restrictedCells, maxDepth, config) {
+//   const winningConditions = generateWinningConditions(boardSize);
+//   let availableMoves = board
+//     .map((cell, index) => {
+//       if (cell !== '') return -1;
+//       return index;
+//     })
+//     .filter(index => index !== -1);
+
+//   // Застосовуємо обмеження тільки якщо конфігурація дозволяє
+//   if (config.useRestrictionHandling && restrictedCells) {
+//     availableMoves = availableMoves.filter(move => {
+//       if (!restrictedCells.includes(move)) return true;
+      
+//       // Перевіряємо чи можна ігнорувати обмеження
+//       if (config.useSmartRestrictionOverride) {
+//         return canOverrideRestriction(board, move, symbol, winningConditions);
+//       }
+      
+//       return false;
+//     });
+//   }
+
+//   // Сортуємо ходи за пріоритетом
+//   const scoredMoves = availableMoves.map(move => {
+//     const testBoard = makeMove([...board], move, symbol);
+//     const score = evaluatePosition(testBoard, boardSize, winningConditions, symbol, getOppositePlayer(symbol), config, currentGameStyle);
+//     return { move, score };
+//   }).sort((a, b) => b.score - a.score);
+
+//   const maxMovesToCheck = Math.min(scoredMoves.length, 15);
+  
+//   for (let i = 0; i < maxMovesToCheck; i++) {
+//     const { move } = scoredMoves[i];
+//     if (canForceWin(board, boardSize, move, symbol, winningConditions, maxDepth, 0, restrictedCells, config)) {
+//       return move;
+//     }
+//   }
+  
+//   return -1;
+// }
+
+// // 🔥 ПОКРАЩЕНА canForceWin
+// function canForceWin(board, boardSize, move, symbol, winningConditions, maxDepth, currentDepth, restrictedCells, config) {
+//   if (currentDepth >= maxDepth) return false;
+  
+//   const testBoard = makeMove([...board], move, symbol);
+//   const result = checkWinner(testBoard, winningConditions);
+  
+//   if (result.winner === symbol) return true;
+//   if (result.winner || isBoardFull(testBoard)) return false;
+  
+//   const opponent = getOppositePlayer(symbol);
+//   let opponentMoves = testBoard
+//     .map((cell, index) => cell === '' ? index : -1)
+//     .filter(index => index !== -1);
+
+//   // Застосовуємо обмеження для противника
+//   if (config.useRestrictionHandling && boardSize === 4) {
+//     const currentRestricted = getRestrictedCells(testBoard, boardSize, opponent, 
+//       symbol === 'X' ? 'X' : 'O'); // firstPlayer logic
+//     opponentMoves = opponentMoves.filter(move => {
+//       if (!currentRestricted.includes(move)) return true;
+//       return canOverrideRestriction(testBoard, move, opponent, winningConditions);
+//     });
+//   }
+
+//   const scoredOpponentMoves = opponentMoves.map(move => {
+//     const testOpponentBoard = makeMove([...testBoard], move, opponent);
+//     const score = evaluatePosition(testOpponentBoard, boardSize, winningConditions, opponent, symbol, config, currentGameStyle);
+//     return { move, score };
+//   }).sort((a, b) => b.score - a.score);
+
+//   const maxOpponentMoves = Math.min(scoredOpponentMoves.length, currentDepth === 0 ? 8 : 4);
+
+//   for (let i = 0; i < maxOpponentMoves; i++) {
+//     const { move: opponentMove } = scoredOpponentMoves[i];
+//     const responseBoard = makeMove([...testBoard], opponentMove, opponent);
+    
+//     let ourNextMoves = responseBoard
+//       .map((cell, index) => cell === '' ? index : -1)
+//       .filter(index => index !== -1);
+
+//     if (config.useRestrictionHandling && boardSize === 4) {
+//       const nextRestricted = getRestrictedCells(responseBoard, boardSize, symbol, 
+//         opponent === 'X' ? 'X' : 'O');
+//       ourNextMoves = ourNextMoves.filter(move => {
+//         if (!nextRestricted.includes(move)) return true;
+//         return canOverrideRestriction(responseBoard, move, symbol, winningConditions);
+//       });
+//     }
+    
+//     const scoredOurMoves = ourNextMoves.map(move => {
+//       const testOurBoard = makeMove([...responseBoard], move, symbol);
+//       const score = evaluatePosition(testOurBoard, boardSize, winningConditions, symbol, opponent, config, currentGameStyle);
+//       return { move, score };
+//     }).sort((a, b) => b.score - a.score);
+    
+//     let canWinFromAnyMove = false;
+//     const maxOurMoves = Math.min(scoredOurMoves.length, 6);
+    
+//     for (let j = 0; j < maxOurMoves; j++) {
+//       const { move: nextMove } = scoredOurMoves[j];
+//       if (canForceWin(responseBoard, boardSize, nextMove, symbol, winningConditions, maxDepth, currentDepth + 1, restrictedCells, config)) {
+//         canWinFromAnyMove = true;
+//         break;
+//       }
+//     }
+    
+//     if (!canWinFromAnyMove) return false;
+//   }
+  
+//   return true;
+// }
+
+// // 🔥 ПОКРАЩЕНИЙ МІНІМАКС
+// function minimaxWithRestrictions(board, boardSize, depth, maxDepth, isMaximizing, aiSymbol, restrictedCells, alpha, beta, config, firstPlayer) {
+//   const cacheKey = createCacheKey(board, depth, isMaximizing, aiSymbol);
+//   if (positionCache.has(cacheKey)) {
+//     return positionCache.get(cacheKey);
+//   }
+
+//   const winningConditions = generateWinningConditions(boardSize);
+//   const result = isGameFinished(board, winningConditions);
+//   const playerSymbol = getOppositePlayer(aiSymbol);
+
+//   if (result.winner === aiSymbol) {
+//     const resultValue = { score: 15000 - depth, move: -1 };
+//     positionCache.set(cacheKey, resultValue);
+//     return resultValue;
+//   }
+  
+//   if (result.winner === playerSymbol) {
+//     const resultValue = { score: depth - 15000, move: -1 };
+//     positionCache.set(cacheKey, resultValue);
+//     return resultValue;
+//   }
+  
+//   if (result.isDraw || depth >= maxDepth) {
+//     const score = evaluatePosition(board, boardSize, winningConditions, aiSymbol, playerSymbol, config, currentGameStyle);
+//     const resultValue = { score, move: -1 };
+//     positionCache.set(cacheKey, resultValue);
+//     return resultValue;
+//   }
+
+//   const currentPlayer = isMaximizing ? aiSymbol : playerSymbol;
+//   let availableMoves = board
+//     .map((cell, index) => {
+//       if (cell !== '') return -1;
+//       return index;
+//     })
+//     .filter(index => index !== -1);
+
+//   // 🔥 РОЗУМНЕ ЗАСТОСУВАННЯ ОБМЕЖЕНЬ
+//   if (config.useRestrictionHandling && restrictedCells && boardSize === 4) {
+//     const currentRestricted = getRestrictedCells(board, boardSize, currentPlayer, firstPlayer);
+    
+//     availableMoves = availableMoves.filter(move => {
+//       if (!currentRestricted.includes(move)) return true;
+      
+//       if (config.useSmartRestrictionOverride) {
+//         return canOverrideRestriction(board, move, currentPlayer, winningConditions);
+//       }
+      
+//       return false;
+//     });
+//   }
+
+//   // Сортування ходів для кращого обрізання
+//   const scoredMoves = availableMoves.map(move => {
+//     const testBoard = makeMove([...board], move, currentPlayer);
+//     const score = evaluatePosition(testBoard, boardSize, winningConditions, aiSymbol, playerSymbol, config, currentGameStyle);
+//     return { move, score };
+//   });
+
+//   if (isMaximizing) {
+//     scoredMoves.sort((a, b) => b.score - a.score);
+//   } else {
+//     scoredMoves.sort((a, b) => a.score - b.score);
+//   }
+
+//   // 🔥 ВИКОРИСТАННЯ ВАРІАЦІЇ ДЛЯ AI
+//   if (isMaximizing && config.usePlayStyleVariation) {
+//     const selectedMove = selectBestMoveWithVariety(scoredMoves, currentGameStyle, config);
+//     if (selectedMove !== -1) {
+//       // Якщо знайшли варіацію, повертаємо її з оцінкою
+//       const selectedScore = scoredMoves.find(sm => sm.move === selectedMove)?.score || scoredMoves[0]?.score || 0;
+//       const resultValue = { score: selectedScore, move: selectedMove };
+      
+//       if (positionCache.size < MAX_CACHE_SIZE) {
+//         positionCache.set(cacheKey, resultValue);
+//       }
+      
+//       return resultValue;
+//     }
+//   }
+
+//   availableMoves = scoredMoves.map(sm => sm.move);
+//   let bestMove = availableMoves[0] || -1;
+//   let resultValue;
+
+//   if (isMaximizing) {
+//     let maxScore = -Infinity;
+    
+//     for (const move of availableMoves) {
+//       const newBoard = makeMove([...board], move, aiSymbol);
+      
+//       const { score } = minimaxWithRestrictions(newBoard, boardSize, depth + 1, maxDepth, false, aiSymbol, restrictedCells, alpha, beta, config, firstPlayer);
+      
+//       if (score > maxScore) {
+//         maxScore = score;
+//         bestMove = move;
+//       }
+      
+//       alpha = Math.max(alpha, score);
+//       if (beta <= alpha) break;
+//     }
+    
+//     resultValue = { score: maxScore, move: bestMove };
+    
+//   } else {
+//     let minScore = Infinity;
+    
+//     for (const move of availableMoves) {
+//       const newBoard = makeMove([...board], move, playerSymbol);
+      
+//       const { score } = minimaxWithRestrictions(newBoard, boardSize, depth + 1, maxDepth, true, aiSymbol, restrictedCells, alpha, beta, config, firstPlayer);
+      
+//       if (score < minScore) {
+//         minScore = score;
+//         bestMove = move;
+//       }
+      
+//       beta = Math.min(beta, score);
+//       if (beta <= alpha) break;
+//     }
+    
+//     resultValue = { score: minScore, move: bestMove };
+//   }
+
+//   if (positionCache.size < MAX_CACHE_SIZE) {
+//     positionCache.set(cacheKey, resultValue);
+//   }
+
+//   return resultValue;
+// }
+
+// // 🔥 ПОКРАЩЕНА СТРАТЕГІЧНА ФУНКЦІЯ
+// function getStrategicMove(board, boardSize, aiSymbol, restrictedCells, config, firstPlayer) {
+//   let availableMoves = board
+//     .map((cell, index) => {
+//       if (cell !== '') return -1;
+//       return index;
+//     })
+//     .filter(index => index !== -1);
+
+//   // Застосовуємо обмеження
+//   if (config.useRestrictionHandling && restrictedCells && boardSize === 4) {
+//     const currentRestricted = getRestrictedCells(board, boardSize, aiSymbol, firstPlayer);
+    
+//     availableMoves = availableMoves.filter(move => {
+//       if (!currentRestricted.includes(move)) return true;
+      
+//       if (config.useSmartRestrictionOverride) {
+//         return canOverrideRestriction(board, move, aiSymbol, generateWinningConditions(boardSize));
+//       }
+      
+//       return false;
+//     });
+//   }
+    
+//   if (availableMoves.length === 0) return -1;
+
+//   const winningConditions = generateWinningConditions(boardSize);
+//   const playerSymbol = getOppositePlayer(aiSymbol);
+
+//   // 1. Спробувати виграти
+//   for (const move of availableMoves) {
+//     const testBoard = makeMove([...board], move, aiSymbol);
+//     const result = checkWinner(testBoard, winningConditions);
+//     if (result.winner === aiSymbol) {
+//       return move;
+//     }
+//   }
+
+//   // 2. Заблокувати виграш (перевіряємо ВСІ можливі ходи, навіть обмежені)
+//   const allMoves = board
+//     .map((cell, index) => cell === '' ? index : -1)
+//     .filter(index => index !== -1);
+
+//   for (const move of allMoves) {
+//     const testBoard = makeMove([...board], move, playerSymbol);
+//     const result = checkWinner(testBoard, winningConditions);
+//     if (result.winner === playerSymbol) {
+//       // Це критичне блокування - ігноруємо обмеження
+//       return move;
+//     }
+//   }
+
+//   // 3. Створити вилку
+//   if (config.useForkBlocking) {
+//     const forkMoves = [];
+//     for (const move of availableMoves) {
+//       const testBoard = makeMove([...board], move, aiSymbol);
+//       const forkCount = countForks(testBoard, aiSymbol, winningConditions);
+//       if (forkCount > 0) {
+//         const score = evaluatePosition(testBoard, boardSize, winningConditions, aiSymbol, playerSymbol, config, currentGameStyle);
+//         forkMoves.push({ move, forkCount, score });
+//       }
+//     }
+
+//     if (forkMoves.length > 0) {
+//       forkMoves.sort((a, b) => {
+//         if (a.forkCount !== b.forkCount) return b.forkCount - a.forkCount;
+//         return b.score - a.score;
+//       });
+//       return forkMoves[0].move;
+//     }
+
+//     // 4. Блокувати вилки противника (перевіряємо всі ходи)
+//     for (const move of allMoves) {
+//       const testBoard = makeMove([...board], move, playerSymbol);
+//       const forkCount = countForks(testBoard, playerSymbol, winningConditions);
+//       if (forkCount > 0) {
+//         return move; // Критичне блокування вилки
+//       }
+//     }
+//   }
+
+//   // 5. Найкращий позиційний хід з варіацією
+//   const scoredMoves = availableMoves.map(move => {
+//     const testBoard = makeMove([...board], move, aiSymbol);
+//     const score = evaluatePosition(testBoard, boardSize, winningConditions, aiSymbol, playerSymbol, config, currentGameStyle);
+//     return { move, score };
+//   }).sort((a, b) => b.score - a.score);
+
+//   // Використовуємо варіацію для вибору
+//   if (config.usePlayStyleVariation) {
+//     const selectedMove = selectBestMoveWithVariety(scoredMoves, currentGameStyle, config);
+//     if (selectedMove !== -1) return selectedMove;
+//   }
+
+//   return scoredMoves[0]?.move || availableMoves[0];
+// }
+
+// // 🔥 ГОЛОВНА ФУНКЦІЯ З ПОКРАЩЕНОЮ ЛОГІКОЮ
+// function getBestMove(board, boardSize, difficulty, aiSymbol, playerSymbol, randomness, restrictedCells = [], firstPlayer) {
+//   const config = getAIConfig(difficulty);
+//   const winningConditions = generateWinningConditions(boardSize);
+  
+//   // 🔥 НОВИЙ КОД - вибір стилю гри
+//   if (config.usePlayStyleVariation) {
+//     styleChangeCounter++;
+    
+//     // Змінюємо стиль з певною ймовірністю або на початку гри
+//     if (styleChangeCounter === 1 || Math.random() < config.playStyleChangeChance) {
+//       const oldStyle = currentGameStyle;
+//       currentGameStyle = getRandomPlayStyle();
+//       if (oldStyle !== currentGameStyle) {
+//         console.log(`🎨 AI змінює стиль з "${AI_PLAY_STYLES[oldStyle]?.name}" на "${AI_PLAY_STYLES[currentGameStyle]?.name}"`);
+//       }
+//     }
+//   }
+  
+//   // Всі доступні ходи (без обмежень)
+//   const allAvailableMoves = board
+//     .map((cell, index) => cell === '' ? index : -1)
+//     .filter(index => index !== -1);
+    
+//   if (allAvailableMoves.length === 0) return -1;
+
+//   // Доступні ходи з врахуванням обмежень
+//   let legalMoves = [...allAvailableMoves];
+  
+//   if (config.useRestrictionHandling && boardSize === 4 && restrictedCells) {
+//     const currentRestricted = getRestrictedCells(board, boardSize, aiSymbol, firstPlayer);
+    
+//     legalMoves = allAvailableMoves.filter(move => {
+//       if (!currentRestricted.includes(move)) return true;
+      
+//       // Розумне ігнорування обмежень для критичних ходів
+//       if (config.useSmartRestrictionOverride) {
+//         return canOverrideRestriction(board, move, aiSymbol, winningConditions);
+//       }
+      
+//       return false;
+//     });
+//   }
+
+//   console.log(`🤖 AI [${difficulty}] аналіз (${AI_PLAY_STYLES[currentGameStyle]?.name}):`, {
+//     boardSize,
+//     totalMoves: allAvailableMoves.length,
+//     legalMoves: legalMoves.length,
+//     restrictions: restrictedCells?.length || 0,
+//     useRestrictions: config.useRestrictionHandling,
+//     playStyle: currentGameStyle
+//   });
+
+//   // Випадковість тільки для легких рівнів
+//   if (config.randomnessPercent > 0 && Math.random() * 100 < config.randomnessPercent) {
+//     const randomMove = legalMoves.length > 0 ? legalMoves[Math.floor(Math.random() * legalMoves.length)] : allAvailableMoves[Math.floor(Math.random() * allAvailableMoves.length)];
+//     console.log(`🎲 Випадковий хід: ${randomMove}`);
+//     return randomMove;
+//   }
+
+//   // 🔥 ПРІОРИТЕТ 1: ЗАВЖДИ виграти
+//   for (const move of allAvailableMoves) {
+//     const testBoard = makeMove([...board], move, aiSymbol);
+//     const result = checkWinner(testBoard, winningConditions);
+//     if (result.winner === aiSymbol) {
+//       console.log(`🏆 Виграшний хід: ${move}`);
+//       return move;
+//     }
+//   }
+
+//   // 🔥 ПРІОРИТЕТ 1.5: ДЕБЮТНА КНИГА
+//   if (config.useOpeningBook) {
+//     const openingMove = getOpeningMove(board, boardSize, aiSymbol, firstPlayer);
+//     if (openingMove !== -1 && (legalMoves.includes(openingMove) || allAvailableMoves.includes(openingMove))) {
+//       console.log(`📖 Дебютний хід (${AI_PLAY_STYLES[currentGameStyle]?.name}): ${openingMove}`);
+//       return openingMove;
+//     }
+//   }
+
+//   // 🔥 ПРІОРИТЕТ 2: МНОЖИННЕ БЛОКУВАННЯ ЗАГРОЗ
+//   if (config.useMultipleThreatDetection) {
+//     const threats = detectMultipleThreats(board, boardSize, playerSymbol, winningConditions);
+//     console.log(`🚨 Знайдено загроз: ${threats.length}`);
+    
+//     if (threats.length > 0) {
+//       // Блокуємо найвищий пріоритет
+//       const topThreat = threats[0];
+//       console.log(`🛡️ БЛОКУВАННЯ МНОЖИННОЇ ЗАГРОЗИ: ${topThreat.position}`);
+//       return topThreat.position;
+//     }
+//   }
+
+//   // 🔥 ПРІОРИТЕТ 2: ЗАВЖДИ заблокувати виграш (ігнорує обмеження)
+//   for (const move of allAvailableMoves) {
+//     const testBoard = makeMove([...board], move, playerSymbol);
+//     const result = checkWinner(testBoard, winningConditions);
+//     if (result.winner === playerSymbol) {
+//       console.log(`🛡️ Блокування виграшу: ${move} ${restrictedCells && restrictedCells.includes(move) ? '(ігнорує обмеження!)' : ''}`);
+//       return move;
+//     }
+//   }
+
+//   // 🔥 ПРІОРИТЕТ 3: Пошук форсованого виграшу
+//   if (config.useForcedWinSearch) {
+//     const forcedWin = findForcedWin(board, boardSize, aiSymbol, restrictedCells, config.forcedWinDepth, config);
+//     if (forcedWin !== -1) {
+//       console.log(`⚡ Форсований виграш: ${forcedWin}`);
+//       return forcedWin;
+//     }
+//   }
+
+//   // 🔥 ПРІОРИТЕТ 4: Мінімакс з адаптивною глибиною
+//   let maxDepth;
+  
+//   if (typeof config.useMinimaxDepth === 'number') {
+//     maxDepth = config.useMinimaxDepth;
+//   } else if (boardSize === 3) {
+//     maxDepth = config.useMinimaxDepth.boardSize3;
+//   } else {
+//     const depthConfig = config.useMinimaxDepth.boardSize4;
+//     if (typeof depthConfig === 'number') {
+//       maxDepth = depthConfig;
+//     } else {
+//       const movesLeft = legalMoves.length;
+//       if (movesLeft >= 12) maxDepth = depthConfig.earlyGame;
+//       else if (movesLeft >= 6) maxDepth = depthConfig.midGame;
+//       else maxDepth = depthConfig.endGame;
+//     }
+//   }
+
+//   console.log(`🎯 Мінімакс глибина ${maxDepth} для ${difficulty} (ходів: ${legalMoves.length}, стиль: ${AI_PLAY_STYLES[currentGameStyle]?.name})`);
+  
+//   // Очищення кешу
+//   if (positionCache.size > MAX_CACHE_SIZE * 0.9) {
+//     positionCache.clear();
+//     restrictionCache.clear();
+//     console.log('🧹 Очищено кеш');
+//   }
+  
+//   const { move: minimaxMove } = minimaxWithRestrictions(
+//     board, boardSize, 0, maxDepth, true, aiSymbol, 
+//     restrictedCells, -Infinity, Infinity, config, firstPlayer
+//   );
+
+//   if (minimaxMove !== -1) {
+//     console.log(`🧠 Мінімакс хід (${AI_PLAY_STYLES[currentGameStyle]?.name}): ${minimaxMove}`);
+//     return minimaxMove;
+//   }
+
+//   // 🔥 ПРІОРИТЕТ 5: Стратегічний резервний хід
+//   const strategicMove = getStrategicMove(board, boardSize, aiSymbol, restrictedCells, config, firstPlayer);
+//   console.log(`📋 Стратегічний хід (${AI_PLAY_STYLES[currentGameStyle]?.name}): ${strategicMove}`);
+  
+//   return strategicMove;
+// }
+
+// // 🔥 ПОКРАЩЕНИЙ ОБРОБНИК ПОВІДОМЛЕНЬ
+// self.onmessage = function(e) {
+//   const { board, boardSize, difficulty, aiSymbol, playerSymbol, randomness, restrictedCells, firstPlayer } = e.data;
+  
+//   try {
+//     const moveCount = board.filter(cell => cell !== '').length;
+//     console.log(`🤖 AI Worker [${difficulty.toUpperCase()}] START:`, { 
+//       boardSize, 
+//       moveCount,
+//       aiSymbol,
+//       playerSymbol,
+//       firstPlayer,
+//       availableMoves: board.filter(cell => cell === '').length,
+//       restrictedCells: restrictedCells?.length || 0,
+//       currentStyle: AI_PLAY_STYLES[currentGameStyle]?.name || currentGameStyle
+//     });
+    
+//     const startTime = Date.now();
+    
+//     const move = getBestMove(board, boardSize, difficulty, aiSymbol, playerSymbol, randomness, restrictedCells, firstPlayer);
+    
+//     const calculationTime = Date.now() - startTime;
+    
+//     // Розрахунок оцінки позиції
+//     let evaluation = 0;
+//     if (move !== -1) {
+//       const winningConditions = generateWinningConditions(boardSize);
+//       const testBoard = makeMove([...board], move, aiSymbol);
+//       const config = getAIConfig(difficulty);
+//       evaluation = evaluatePosition(testBoard, boardSize, winningConditions, aiSymbol, playerSymbol, config, currentGameStyle);
+//     }
+    
+//     console.log(`🤖 AI Worker [${difficulty.toUpperCase()}] FINISH:`, {
+//       calculationTime: `${calculationTime}мс`,
+//       move,
+//       evaluation: Math.round(evaluation),
+//       positionCache: positionCache.size,
+//       restrictionCache: restrictionCache.size,
+//       playStyle: AI_PLAY_STYLES[currentGameStyle]?.name || currentGameStyle
+//     });
+    
+//     // Перевірка на валідність ходу
+//     if (move === -1 || board[move] !== '') {
+//       console.error(`🔥 ПОМИЛКА: Невалідний хід ${move}`, {
+//         boardState: board,
+//         restrictedCells,
+//         difficulty,
+//         playStyle: currentGameStyle
+//       });
+//     }
+    
+//     self.postMessage({ 
+//       success: true, 
+//       move,
+//       calculationTime,
+//       evaluation: Math.round(evaluation),
+//       difficulty,
+//       playStyle: AI_PLAY_STYLES[currentGameStyle]?.name || currentGameStyle,
+//       cacheHits: positionCache.size + restrictionCache.size,
+//       debug: {
+//         boardSize,
+//         moveCount,
+//         restrictions: restrictedCells?.length || 0,
+//         style: currentGameStyle
+//       }
+//     });
+    
+//   } catch (error) {
+//     console.error(`🔥 AI Worker [${difficulty?.toUpperCase() || 'UNKNOWN'}] ERROR:`, error);
+    
+//     // Резервний простий хід
+//     const fallbackMove = board.findIndex(cell => cell === '');
+    
+//     self.postMessage({ 
+//       success: false, 
+//       error: error.message,
+//       difficulty,
+//       playStyle: AI_PLAY_STYLES[currentGameStyle]?.name || currentGameStyle,
+//       fallbackMove: fallbackMove >= 0 ? fallbackMove : -1
+//     });
+//   }
+// };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 // public/ai-worker.js
 // Web Worker для AI обчислень - МАКСИМАЛЬНО ПОКРАЩЕНА ВЕРСІЯ 4.0
 // 🔥 З РІЗНОМАНІТНИМИ СТИЛЯМИ ГРИ
@@ -5249,6 +6626,14 @@ function getStrategicMove(board, boardSize, aiSymbol, restrictedCells, config, f
 
 // 🔥 ГОЛОВНА ФУНКЦІЯ З ПОКРАЩЕНОЮ ЛОГІКОЮ
 function getBestMove(board, boardSize, difficulty, aiSymbol, playerSymbol, randomness, restrictedCells = [], firstPlayer) {
+    // 🔥 ДОДАЙТЕ ПЕРЕВІРКУ НА ПОЧАТКУ
+    const occupiedCells = board.filter(cell => cell !== '').length;
+    console.log(`🔍 AI Worker: аналіз дошки з ${occupiedCells} зайнятими клітинками`);
+    
+    if (occupiedCells === board.length) {
+      console.log('❌ AI Worker: дошка повна!');
+      return -1;
+    }
   const config = getAIConfig(difficulty);
   const winningConditions = generateWinningConditions(boardSize);
   

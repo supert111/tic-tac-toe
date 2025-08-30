@@ -69,21 +69,13 @@ export function useTimer({
   // Основний таймер
   useEffect(() => {
     if (!isRunning) {
-      console.log('⏸️ Таймер зупинений, пропускаємо інтервал');
       return;
     }
-    console.log('🔥 Запускаємо інтервал таймера, поточний час:', timeLeft);
 
     intervalRef.current = setInterval(() => {
-      console.log('⏰ Тік таймера'); // 🔍 ДОДАЙ ЦЕЙ ЛОГ
       setTimeLeft(prev => {
         // const newTime = prev - 1;
         const newTime = Math.max(0, prev - 1); // 🔥 Захист від негативних значень
-         // Логуємо тільки якщо час реально змінився
-      if (newTime !== prev) {
-        console.log('⏰ Новий час:', newTime);
-      }
-
         // Викликаємо onTick
         onTick?.(newTime);
         
@@ -93,6 +85,11 @@ export function useTimer({
           onWarning?.();
         }
         
+        // Логуємо тільки якщо час реально змінився
+        if (newTime !== prev && newTime % 5 === 0) { // кожні 5 секунд
+          // console.log('⏰ Час:', newTime);
+        }
+
         // Перевіряємо закінчення часу
         if (newTime <= 0 && !timeUpTriggeredRef.current) {
           timeUpTriggeredRef.current = true;
@@ -125,13 +122,12 @@ export function useTimer({
         clearInterval(intervalRef.current);
       }
     };
-  }, [isRunning, config.warningThreshold, config.totalTime, onTimeUp, onWarning, onTick, isTimeUp]);
+  }, [isRunning, config.warningThreshold, config.totalTime, onTimeUp, onWarning, onTick, isTimeUp, timeLeft]);
 
   // Запуск таймера
   const startTimer = useCallback(() => {
     // Додайте перевірку чи вже запущений
     if (isRunning) {
-      console.log('⚠️ Таймер вже запущений, пропускаємо');
       return;
     }
 

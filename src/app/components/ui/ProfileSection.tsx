@@ -722,36 +722,36 @@ import { useTranslation } from '../../../lib/i18n';
 
 export default function ProfileSection() {
   const { t, language, setLanguage } = useTranslation();
-  const [userName, setUserName] = useState('Олександр_Крутий');
-  const [isEditingName, setIsEditingName] = useState(false);
-  const [tempName, setTempName] = useState(userName);
-  const [avatar, setAvatar] = useState<string | null>(null);
-  const [walletAddress] = useState('0x1234...5678');
-  const [isWalletVerified] = useState(true);
+  //const [userName, setUserName] = useState('Олександр_Крутий');
+  //const [isEditingName, setIsEditingName] = useState(false);
+ // const [tempName, setTempName] = useState(userName);
+  //const [avatar, setAvatar] = useState<string | null>(null);
+  //const [walletAddress] = useState('0x1234...5678');
+  //const [isWalletVerified] = useState(true);
   const [theme, setTheme] = useState<'purple' | 'blue' | 'green'>('purple');
 
-  const handleNameSave = () => {
-    if (tempName.trim()) {
-      setUserName(tempName.trim());
-      setIsEditingName(false);
-    }
-  };
+  // const handleNameSave = () => {
+  //   if (tempName.trim()) {
+  //     setUserName(tempName.trim());
+  //     setIsEditingName(false);
+  //   }
+  // };
 
-  const handleNameCancel = () => {
-    setTempName(userName);
-    setIsEditingName(false);
-  };
+  // const handleNameCancel = () => {
+  //   setTempName(userName);
+  //   setIsEditingName(false);
+  // };
 
-  const handleAvatarUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        setAvatar(event.target?.result as string);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
+  // const handleAvatarUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  //   const file = e.target.files?.[0];
+  //   if (file) {
+  //     const reader = new FileReader();
+  //     reader.onload = (event) => {
+  //       setAvatar(event.target?.result as string);
+  //     };
+  //     reader.readAsDataURL(file);
+  //   }
+  // };
 
   return (
     <div className="space-y-4">
@@ -761,7 +761,7 @@ export default function ProfileSection() {
       </div>
 
       {/* Аватар з балансом */}
-      <div className="bg-white/10 rounded-xl p-4">
+      {/* <div className="bg-white/10 rounded-xl p-4">
         <div className="flex items-center gap-4">
           <div className="relative">
             <div className="w-16 h-16 rounded-full overflow-hidden bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center shadow-lg">
@@ -802,10 +802,10 @@ export default function ProfileSection() {
             </div>
           </div>
         </div>
-      </div>
+      </div> */}
 
       {/* Ім'я */}
-      <div className="bg-white/10 rounded-xl p-4">
+      {/* <div className="bg-white/10 rounded-xl p-4">
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-2">
             <span className="text-sm text-white/70">{t.profile.name}</span>
@@ -858,7 +858,7 @@ export default function ProfileSection() {
             )}
           </div>
         )}
-      </div>
+      </div> */}
 
       {/* Статистика */}
       {/* <div className="bg-white/10 rounded-xl p-4">
