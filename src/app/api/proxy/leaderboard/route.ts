@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server';
 
 export async function GET() {
   try {
-    const response = await fetch('https://monad-games-id-site.vercel.app/api/leaderboard?gameId=106&sortBy=scores', {
+    const response = await fetch('https://monad-games-id-site.vercel.app/api/leaderboard?gameId=217&sortBy=scores', {
       headers: {
         'Content-Type': 'application/json',
       },
