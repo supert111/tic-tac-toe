@@ -3434,8 +3434,8 @@ export function useGameState({
 
   const ai = useAI({
     config: aiConfig,
-    onMoveCalculated: (moveIndex, evaluation) => {
-      console.log(`AI обрав хід ${moveIndex} з оцінкою ${evaluation}`);
+    onMoveCalculated: () => {
+      //console.log(`AI обрав хід ${moveIndex} з оцінкою ${evaluation}`);
     }
   });
 
@@ -3469,11 +3469,12 @@ export function useGameState({
     onGameEnd?.(result, winner);
   }
 
-  function handleMoveComplete(board: CellValue[], nextPlayer: Player) {
-    console.log('🔄 handleMoveComplete викликано:', { 
-      nextPlayer, 
-      gameMode: settings.gameMode, 
-    });
+  function handleMoveComplete() {
+  // function handleMoveComplete(board: CellValue[], nextPlayer: Player) {
+  //   console.log('🔄 handleMoveComplete викликано:', { 
+  //     nextPlayer, 
+  //     gameMode: settings.gameMode, 
+  //   });
   
     // Скидаємо таймер
     if (settings.timerEnabled) {

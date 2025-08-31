@@ -174,7 +174,7 @@ export function useTimer({
 
   // Скидання тільки таймера ходу
   const resetMoveTimer = useCallback(() => {
-    console.log('🔄 resetMoveTimer викликано'); // ДОДАЙТЕ ЦЕЙ ЛОГ
+    // console.log('🔄 resetMoveTimer викликано'); // ДОДАЙТЕ ЦЕЙ ЛОГ
     setTimeLeft(config.timePerMove);
     setIsTimeUp(false);
     warningTriggeredRef.current = false;
