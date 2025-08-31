@@ -16,9 +16,9 @@ export async function submitScore({
 //  console.trace('submitScore викликано з:');
 
   try {
-    const response = await fetch('/api/submit-score', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+    const response = await fetch("/api/proxy/submit-score", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ playerAddress, scoreToAdd, transactionsToAdd }),
     });
 
