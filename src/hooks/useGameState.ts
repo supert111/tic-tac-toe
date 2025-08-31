@@ -3560,43 +3560,142 @@ export function useGameState({
     aiMoveInProgressRef.current = true; // 🔥 БЛОКУЄМО
 
   try {
-    await new Promise(resolve => setTimeout(resolve, settings.aiThinkingTime));
-    const moveIndex = await ai.makeAIMove(gameLogic.board, settings.boardSize, gameLogic.restrictedCells, gameLogic.firstPlayer);
-    
-    let finalMoveIndex = moveIndex;
-    
-    // Якщо AI не знайшов хід або хід невалідний - знайти запасний
-    if (moveIndex === -1 || gameLogic.board[moveIndex] !== '') {
+    await new Promise((resolve) =>
+      setTimeout(resolve, settings.aiThinkingTime)
+    );
+    const moveIndex = await ai.makeAIMove(
+      gameLogic.board,
+      settings.boardSize,
+      gameLogic.restrictedCells,
+      gameLogic.firstPlayer
+    );
 
-      const availableMoves = settings.boardSize === 4 ? 
-        gameLogic.getAvailableMovesWithRestrictions() :
-        gameLogic.getAvailableMoves();
-        
-      if (availableMoves.length > 0) {
-        finalMoveIndex = availableMoves[0];
-      } else {
-        console.error('❌ Немає доступних ходів');
+    let finalMoveIndex = moveIndex;
+
+    // Якщо AI не знайшов хід або хід невалідний - знайти запасний
+    // if (moveIndex === -1 || gameLogic.board[moveIndex] !== '') {
+
+    //   const availableMoves = settings.boardSize === 4 ?
+    //     gameLogic.getAvailableMovesWithRestrictions() :
+    //     gameLogic.getAvailableMoves();
+
+    //   if (availableMoves.length > 0) {
+    //     finalMoveIndex = availableMoves[0];
+    //   } else {
+    //     console.error('❌ Немає доступних ходів');
+    //     return;
+    //   }
+    // }
+
+    // // Перевірка валідності запасного ходу
+    // const canMove = settings.boardSize === 4 ?
+    //   gameLogic.canMakeMoveWithRestrictions(finalMoveIndex) :
+    //   gameLogic.canMakeMove(finalMoveIndex);
+
+
+
+    // Якщо AI не знайшов хід або хід невалідний - знайти запасний
+    // if (moveIndex === -1 || gameLogic.board[moveIndex] !== "") {
+    //   const availableMoves =
+    //     settings.boardSize === 4
+    //       ? gameLogic.getAvailableMovesWithRestrictions()
+    //       : gameLogic.getAvailableMoves();
+
+    //   if (availableMoves.length > 0) {
+    //     finalMoveIndex = availableMoves[0];
+
+    //     // Перевірка валідності запасного ходу
+    //     const canMove =
+    //       settings.boardSize === 4
+    //         ? gameLogic.canMakeMoveWithRestrictions(finalMoveIndex)
+    //         : gameLogic.canMakeMove(finalMoveIndex);
+
+    //     if (!canMove) {
+    //       // Якщо перший запасний хід теж невалідний, шукаємо інший
+    //       for (let i = 1; i < availableMoves.length; i++) {
+    //         const testMove = availableMoves[i];
+    //         const testCanMove =
+    //           settings.boardSize === 4
+    //             ? gameLogic.canMakeMoveWithRestrictions(testMove)
+    //             : gameLogic.canMakeMove(testMove);
+
+    //         if (testCanMove) {
+    //           finalMoveIndex = testMove;
+    //           break;
+    //         }
+    //       }
+    //     }
+    //   } else {
+    //     console.error("❌ Немає доступних ходів");
+    //     return;
+    //   }
+    // }
+
+    // // Фінальна перевірка
+    // const canMove =
+    //   settings.boardSize === 4
+    //     ? gameLogic.canMakeMoveWithRestrictions(finalMoveIndex)
+    //     : gameLogic.canMakeMove(finalMoveIndex);
+
+    // if (!canMove) {
+    //   console.error("❌ Запасний хід також невалідний");
+    //   return;
+    // }
+
+
+    if (moveIndex === -1 || gameLogic.board[moveIndex] !== "") {
+      const availableMoves =
+        settings.boardSize === 4
+          ? gameLogic.getAvailableMovesWithRestrictions()
+          : gameLogic.getAvailableMoves();
+
+      if (availableMoves.length === 0) {
+        console.error("❌ Немає доступних ходів");
+        return;
+      }
+
+      // Шукаємо перший валідний хід
+      let foundValidMove = false;
+      for (const testMove of availableMoves) {
+        const canMakeThisMove =
+          settings.boardSize === 4
+            ? gameLogic.canMakeMoveWithRestrictions(testMove)
+            : gameLogic.canMakeMove(testMove);
+
+        if (canMakeThisMove) {
+          finalMoveIndex = testMove;
+          foundValidMove = true;
+          break;
+        }
+      }
+
+      if (!foundValidMove) {
+        console.error("❌ Не знайдено валідних ходів серед доступних");
+        return;
+      }
+    } else {
+      // Перевіряємо чи оригінальний хід AI валідний
+      const canMakeOriginalMove =
+        settings.boardSize === 4
+          ? gameLogic.canMakeMoveWithRestrictions(finalMoveIndex)
+          : gameLogic.canMakeMove(finalMoveIndex);
+
+      if (!canMakeOriginalMove) {
+        console.error("❌ AI хід невалідний через обмеження");
         return;
       }
     }
-    
-    // Перевірка валідності запасного ходу
-    const canMove = settings.boardSize === 4 ? 
-      gameLogic.canMakeMoveWithRestrictions(finalMoveIndex) :
-      gameLogic.canMakeMove(finalMoveIndex);
-      
-    if (!canMove) {
-      console.error('❌ Запасний хід також невалідний');
-      return;
-    }
-    
+
+
     // ЄДИНИЙ виклик makePlayerMoveWithSymbol
-    const success = gameLogic.makePlayerMoveWithSymbol(finalMoveIndex, aiSymbol);
-    
+    const success = gameLogic.makePlayerMoveWithSymbol(
+      finalMoveIndex,
+      aiSymbol
+    );
+
     if (!success) {
-      console.error('❌ AI хід не вдався навіть з валідною позицією');
+      console.error("❌ AI хід не вдався навіть з валідною позицією");
     }
-    
   } catch (error) {
     console.error('🔥 Помилка AI ходу:', error);
   } finally {
